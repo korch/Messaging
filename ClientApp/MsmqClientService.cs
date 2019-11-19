@@ -126,19 +126,31 @@ namespace ClientApp
                 var chunkCount = (int)Math.Ceiling(size / (decimal)byteMaxSizeForChunk);
                 var bufferArray = new byte[chunkCount][];
 
-                AddMessage(new MemoryStream(Encoding.ASCII.GetBytes($"{Path.GetFileName(e.FullPath)}")), "Initial", 0);
+                AddMessage(new MemoryStream(Encoding.ASCII.GetBytes($"{Path.GetFileName(e.FullPath)}")), "Initial", -1);
                 for (var i = 0; i < chunkCount; i++)
                 {
-                    bufferArray[i] = new byte[byteMaxSizeForChunk];
-                    for (var j = 0; j < byteMaxSizeForChunk && i * chunkCount + j < size; j++)
+                    if (i == chunkCount - 1)
                     {
-                        bufferArray[i][j] = buf[i * chunkCount + j];
+                        bufferArray[i] = new byte[Math.Min(byteMaxSizeForChunk, size - i * byteMaxSizeForChunk)];
+                        for (var j = 0; j < bufferArray[i].Length && i * chunkCount + j < size; j++)
+                        {
+                            bufferArray[i][j] = buf[i * chunkCount + j];
+                        }
+                    }
+
+                    else
+                    {
+                        bufferArray[i] = new byte[byteMaxSizeForChunk];
+                        for (var j = 0; j < byteMaxSizeForChunk && i * chunkCount + j < size; j++)
+                        {
+                            bufferArray[i][j] = buf[i * chunkCount + j];
+                        }
                     }
 
                     AddMessage(new MemoryStream(bufferArray[i]), i.ToString(), i);
                 }
 
-                AddMessage(new MemoryStream(Encoding.ASCII.GetBytes($"{chunkCount}")), "Last", 0); 
+                AddMessage(new MemoryStream(Encoding.ASCII.GetBytes($"{chunkCount}")), $"{Path.GetFileName(e.FullPath)}", -2); 
             }
 
             Console.WriteLine($"File: {e.FullPath} which was {e.ChangeType} was sent to Server.");

@@ -58,6 +58,7 @@ namespace ServerApp.Msmq
                 serverQueue.Formatter = new BinaryMessageFormatter();
                 serverQueue.MessageReadPropertyFilter.Body = true;
                 serverQueue.MessageReadPropertyFilter.CorrelationId = true;
+                serverQueue.MessageReadPropertyFilter.AppSpecific = true;
 
                 while (true)
                 {
@@ -82,19 +83,19 @@ namespace ServerApp.Msmq
                         clientQueue.Send(msg);
                     }
 
-                    byte[] buffer = new byte[1024];
-
+                    byte[] buffer;
                     if (message.AppSpecific == 100)
                     {
                         using (FileStream output = new FileStream($"{DefaultPath}{message.Label}", FileMode.Create))
                         {
                             int readBytes = 0;
+                            buffer = new byte[message.BodyStream.Length];
                             while ((readBytes = message.BodyStream.Read(buffer, 0, buffer.Length)) > 0)
                             {
                                 output.Write(buffer, 0, readBytes);
                             }
 
-                            output.Close();
+                            output.Close();             
                         }
 
                         var text = string.Format($"Received file with name {message.Label}\n from the client");
@@ -103,28 +104,49 @@ namespace ServerApp.Msmq
                     }
                     else
                     {
-                        if (string.Equals(message.Label, "Last"))
+                        if (message.AppSpecific == -2)
                         {
-                            var list = _messages.Where(m => m.Label != "Initial" || m.Label != "Last");
-                            var stream = new MemoryStream();
-                            foreach (var item in list)
-                            {    
-                                item.BodyStream.CopyTo(stream);
-                            }
+                            var list = _messages.Where(m => m.AppSpecific != -1);
 
-                            using (FileStream output = new FileStream($"{DefaultPath}hahaha.pdf", FileMode.Create))
+                            using (FileStream output = new FileStream($"{DefaultPath}{message.Label}", FileMode.Create))
                             {
-                                int readBytes = 0;
-                                while ((readBytes = stream.Read(buffer, 0, buffer.Length)) > 0)
+                                foreach (var item in list)
                                 {
-                                    output.Write(buffer, 0, readBytes);
+                                    int readBytes = 0;
+                                    buffer = new byte[item.BodyStream.Length];
+                                    while ((readBytes = item.BodyStream.Read(buffer, 0, buffer.Length)) > 0)
+                                    {
+                                        output.Write(buffer, 0, readBytes);
+                                    }
+
+                                    item.Dispose();
                                 }
-
                                 output.Close();
-
-                                var text = string.Format($"Received file with name {message.Label}\n from the client");
-                                Console.WriteLine(text);
                             }
+
+                            var text = string.Format($"Received file with name {message.Label}\n from the client");
+                            Console.WriteLine(text);
+                            message.Dispose();
+                            //var stream = new MemoryStream();
+                            //foreach (var item in list)
+                            //{    
+                            //    item.BodyStream.CopyTo(stream);
+                            //}
+
+                            //buffer = new byte[stream.Length + 100];
+                            //using (FileStream output = new FileStream($"{DefaultPath}{message.Label}", FileMode.Create))
+                            //{
+                            //    int readBytes = 0;
+                            //    while ((readBytes = stream.Read(buffer, 0, buffer.Length)) > 0)
+                            //    {
+                            //        output.Write(buffer, 0, readBytes);
+                            //    }
+
+                            //    output.Close();
+
+                            //    var text = string.Format($"Received file with name {message.Label}\n from the client");
+                            //    Console.WriteLine(text);
+                            //}
 
                         } else
                             _messages.Add(message);    
