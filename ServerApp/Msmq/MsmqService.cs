@@ -39,15 +39,11 @@ namespace ServerApp.Msmq
 
         private void CreateQueue()
         {
-            if (!MessageQueue.Exists(ServerQueueName))
-            {
+            if (!MessageQueue.Exists(ServerQueueName)) {
                 messageQueue = MessageQueue.Create(ServerQueueName);
-
                 Console.WriteLine($"MSMQ queue was created with name:{ServerQueueName}");
-            } else
-            {
-                Console.WriteLine($"You uses MSMQ with name:{ServerQueueName}");
-               
+            } else {
+                Console.WriteLine($"You uses MSMQ with name:{ServerQueueName}");      
             }
         }
 
