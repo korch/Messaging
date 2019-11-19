@@ -12,13 +12,8 @@ namespace ClientApp
     public class MsmqClientService : IDisposable
     {
         private const string ServerQueueName = @".\Private$\MsmqTRansferFileQueue";
-    
-        private const string DefaultPath = "C:\\DefaultFolder\\";
         private const long byteMaxSizeForChunk = 3000000;
-        private string _path = string.Empty;
-
-        // private FileSystemWatcher ;
-
+    
         private Watcher _watcher;
 
         MessageQueue serverQueue;
@@ -52,8 +47,7 @@ namespace ClientApp
         /// <param name="fullPath"></param>
         private void ProcessingSingleMessage(string fullPath, FileStream fileStream)
         {
-            var message = new Message
-            {
+            var message = new Message {
                 BodyStream = fileStream,
                 Label = Path.GetFileName(fullPath),
                 Priority = MessagePriority.Normal,
@@ -70,14 +64,10 @@ namespace ClientApp
         /// </summary>
         /// <param name="fullPath"></param>
         private void ProcessingMultipleMessage(string fullPath, FileStream fileStream)
-        {
-            var data = new MemoryStream();
-
-            fileStream.CopyTo(data);
-
-            data.Seek(0, SeekOrigin.Begin);
-            byte[] buf = new byte[data.Length];
-            data.Read(buf, 0, buf.Length);
+        {            
+            fileStream.Seek(0, SeekOrigin.Begin);
+            byte[] buf = new byte[fileStream.Length];
+            fileStream.Read(buf, 0, buf.Length);
 
             var size = fileStream.Length;
             fileStream.Close();
@@ -85,6 +75,7 @@ namespace ClientApp
             var bufferArray = new byte[chunkCount][];
 
             SendMessage(new MemoryStream(Encoding.ASCII.GetBytes($"{Path.GetFileName(fullPath)}")), "Initial", -1);
+
             for (var i = 0; i < chunkCount; i++) {
                 if (i == chunkCount - 1) {
                     bufferArray[i] = new byte[Math.Min(byteMaxSizeForChunk, size - i * byteMaxSizeForChunk)];
@@ -110,8 +101,7 @@ namespace ClientApp
         /// <param name="appSpecific"></param>
         private void SendMessage(Stream stream, string label, int appSpecific)
         {
-            var message = new Message
-            {
+            var message = new Message {
                 BodyStream = stream,
                 Label = label,
                 Priority = MessagePriority.Normal,

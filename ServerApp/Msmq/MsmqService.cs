@@ -19,12 +19,7 @@ namespace ServerApp.Msmq
         private const string ServerQueueName = @".\Private$\MsmqTRansferFileQueue";
         private const string DefaultPath = "C:\\DefaultServerFolder\\";
 
-        private MessageQueue messageQueue;
-
         private List<Message> _messages;
-
-        public MsmqService()
-        { }
 
         public void Run()
         {
@@ -40,7 +35,7 @@ namespace ServerApp.Msmq
         private void CreateQueue()
         {
             if (!MessageQueue.Exists(ServerQueueName)) {
-                messageQueue = MessageQueue.Create(ServerQueueName);
+                MessageQueue.Create(ServerQueueName);
                 Console.WriteLine($"MSMQ queue was created with name:{ServerQueueName}");
             } else {
                 Console.WriteLine($"You uses MSMQ with name:{ServerQueueName}");      
@@ -56,8 +51,7 @@ namespace ServerApp.Msmq
                 serverQueue.MessageReadPropertyFilter.CorrelationId = true;
                 serverQueue.MessageReadPropertyFilter.AppSpecific = true;
 
-                while (true)
-                {
+                while (true) {
                     var asyncReceive = serverQueue.BeginPeek();
 
                     var res = WaitHandle.WaitAny(new WaitHandle[] { stopWorkEvent, asyncReceive.AsyncWaitHandle });
@@ -67,88 +61,46 @@ namespace ServerApp.Msmq
                     var message = serverQueue.EndPeek(asyncReceive);
                     serverQueue.ReceiveById(message.Id);
 
-                    var clientQueue = message.ResponseQueue;
-
-                    if (clientQueue == null)
-                    {
-
-                    }
-                    else
-                    {
-                        var msg = new Message("Hello", serverQueue.Formatter) { CorrelationId = message.Id };
-                        clientQueue.Send(msg);
-                    }
-
-                    byte[] buffer;
-                    if (message.AppSpecific == 100)
-                    {
-                        using (FileStream output = new FileStream($"{DefaultPath}{message.Label}", FileMode.Create))
-                        {
-                            int readBytes = 0;
-                            buffer = new byte[message.BodyStream.Length];
-                            while ((readBytes = message.BodyStream.Read(buffer, 0, buffer.Length)) > 0)
-                            {
-                                output.Write(buffer, 0, readBytes);
-                            }
-
+                    if (message.AppSpecific == 100) {
+                        using (FileStream output = new FileStream($"{DefaultPath}{message.Label}", FileMode.Create)) {
+                           Read(message.BodyStream, output);
                             output.Close();             
                         }
+                        message.Dispose();
 
                         var text = string.Format($"Received file with name {message.Label}\n from the client");
                         Console.WriteLine(text);
-                        message.Dispose();
-                    }
-                    else
-                    {
-                        if (message.AppSpecific == -2)
-                        {
+                    } else {
+                        if (message.AppSpecific == -2) {
                             var list = _messages.Where(m => m.AppSpecific != -1);
 
-                            using (FileStream output = new FileStream($"{DefaultPath}{message.Label}", FileMode.Create))
-                            {
+                            using (FileStream output = new FileStream($"{DefaultPath}{message.Label}", FileMode.Create)) {
                                 foreach (var item in list)
                                 {
-                                    int readBytes = 0;
-                                    buffer = new byte[item.BodyStream.Length];
-                                    while ((readBytes = item.BodyStream.Read(buffer, 0, buffer.Length)) > 0)
-                                    {
-                                        output.Write(buffer, 0, readBytes);
-                                    }
-
-                                    item.Dispose();
+                                   Read(item.BodyStream, output);
+                                   item.Dispose();
                                 }
                                 output.Close();
                             }
+                            message.Dispose();
 
                             var text = string.Format($"Received file with name {message.Label}\n from the client");
                             Console.WriteLine(text);
-                            message.Dispose();
-                            //var stream = new MemoryStream();
-                            //foreach (var item in list)
-                            //{    
-                            //    item.BodyStream.CopyTo(stream);
-                            //}
-
-                            //buffer = new byte[stream.Length + 100];
-                            //using (FileStream output = new FileStream($"{DefaultPath}{message.Label}", FileMode.Create))
-                            //{
-                            //    int readBytes = 0;
-                            //    while ((readBytes = stream.Read(buffer, 0, buffer.Length)) > 0)
-                            //    {
-                            //        output.Write(buffer, 0, readBytes);
-                            //    }
-
-                            //    output.Close();
-
-                            //    var text = string.Format($"Received file with name {message.Label}\n from the client");
-                            //    Console.WriteLine(text);
-                            //}
-
                         } else
                             _messages.Add(message);    
                     }
                 }
             }
-        } 
+        }
+
+        private void Read(Stream stream, FileStream output)
+        {
+            int readBytes = 0;
+            byte[] buffer;
+            buffer = new byte[stream.Length];
+            while ((readBytes = stream.Read(buffer, 0, buffer.Length)) > 0) {
+                output.Write(buffer, 0, readBytes);
+            }
+        }
     }
 }
