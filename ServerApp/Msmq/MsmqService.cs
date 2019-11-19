@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using Experimental.System.Messaging;
@@ -17,6 +21,8 @@ namespace ServerApp.Msmq
 
         private MessageQueue messageQueue;
 
+        private List<Message> _messages;
+
         public MsmqService()
         { }
 
@@ -25,6 +31,7 @@ namespace ServerApp.Msmq
             CreateQueue();
 
             stopWorkEvent = new ManualResetEvent(false);
+            _messages = new List<Message>();
 
             workThread = new Thread(Server);
             workThread.Start();
@@ -39,7 +46,8 @@ namespace ServerApp.Msmq
                 Console.WriteLine($"MSMQ queue was created with name:{ServerQueueName}");
             } else
             {
-                Console.WriteLine($"MSMQ queue was created with name:{ServerQueueName}");
+                Console.WriteLine($"You uses MSMQ with name:{ServerQueueName}");
+               
             }
         }
 
@@ -64,31 +72,65 @@ namespace ServerApp.Msmq
 
                     var clientQueue = message.ResponseQueue;
 
-                    if (clientQueue == null) {
+                    if (clientQueue == null)
+                    {
 
-                    } else {
+                    }
+                    else
+                    {
                         var msg = new Message("Hello", serverQueue.Formatter) { CorrelationId = message.Id };
                         clientQueue.Send(msg);
                     }
 
                     byte[] buffer = new byte[1024];
 
-                    using (FileStream output = new FileStream($"{DefaultPath}{message.Label}", FileMode.Create))
+                    if (message.AppSpecific == 100)
                     {
-                        int readBytes = 0;
-                        while ((readBytes = message.BodyStream.Read(buffer, 0, buffer.Length)) > 0)
+                        using (FileStream output = new FileStream($"{DefaultPath}{message.Label}", FileMode.Create))
                         {
-                            output.Write(buffer, 0, readBytes);
-                        }
-                        
-                        output.Close();
-                    }
+                            int readBytes = 0;
+                            while ((readBytes = message.BodyStream.Read(buffer, 0, buffer.Length)) > 0)
+                            {
+                                output.Write(buffer, 0, readBytes);
+                            }
 
-                    var text = string.Format($"Received file with name {message.Label}\n from the client");
-                    Console.WriteLine(text);
-                    message.Dispose();
+                            output.Close();
+                        }
+
+                        var text = string.Format($"Received file with name {message.Label}\n from the client");
+                        Console.WriteLine(text);
+                        message.Dispose();
+                    }
+                    else
+                    {
+                        if (string.Equals(message.Label, "Last"))
+                        {
+                            var list = _messages.Where(m => m.Label != "Initial" || m.Label != "Last");
+                            var stream = new MemoryStream();
+                            foreach (var item in list)
+                            {    
+                                item.BodyStream.CopyTo(stream);
+                            }
+
+                            using (FileStream output = new FileStream($"{DefaultPath}hahaha.pdf", FileMode.Create))
+                            {
+                                int readBytes = 0;
+                                while ((readBytes = stream.Read(buffer, 0, buffer.Length)) > 0)
+                                {
+                                    output.Write(buffer, 0, readBytes);
+                                }
+
+                                output.Close();
+
+                                var text = string.Format($"Received file with name {message.Label}\n from the client");
+                                Console.WriteLine(text);
+                            }
+
+                        } else
+                            _messages.Add(message);    
+                    }
                 }
             }
-        }
+        } 
     }
 }
