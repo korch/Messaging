@@ -15,14 +15,37 @@ namespace ClientApp
         private const long byteMaxSizeForChunk = 3000000;
     
         private Watcher _watcher;
+        private string _queuePath = string.Empty;
 
         MessageQueue serverQueue;
    
         public MsmqClientService()
         {
+            SetServerQueueName();
+
             _watcher = new Watcher();
             _watcher.SetCreateHandler(OnChanged);
-            serverQueue = new MessageQueue(ServerQueueName, QueueAccessMode.Send);  
+            serverQueue = new MessageQueue(_queuePath, QueueAccessMode.Send);  
+        }
+
+        private void SetServerQueueName()
+        {
+            Console.WriteLine("Do you use a remote serve rqueue? Y/N");
+            var answer = Console.ReadLine();
+
+            if (string.Equals(answer.ToLower(), "y"))
+            {
+                Console.WriteLine(
+                    "Please, write a full path for remote queue (pattern: FormatName:Direct=OS:machinename\\private$\\queuename)");
+                _queuePath = Console.ReadLine();
+
+                Console.WriteLine();
+                Console.WriteLine();
+
+                Console.WriteLine("Good! Now you uses a remote queue");
+            }
+            else
+                _queuePath = ServerQueueName;
         }
 
         // Define the event handlers.
