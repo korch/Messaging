@@ -12,6 +12,9 @@ namespace ClientApp
             Console.WriteLine("Hello World!");
 
             var msmq = new MsmqClientService();
+
+            msmq.Run();
+
             Console.ReadKey(true);
         }
     }
