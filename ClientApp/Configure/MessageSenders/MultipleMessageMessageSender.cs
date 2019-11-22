@@ -9,11 +9,12 @@ namespace ClientApp.Configure.MessageSenders
     public class MultipleMessageMessageSender : IMessageSender
     {
         private readonly string _queueName;
-        private const long byteMaxSizeForChunk = 3000000;
+        private long byteMaxSizeForChunk = 0;
 
-        public MultipleMessageMessageSender(string messageQueuePath)
+        public MultipleMessageMessageSender(string messageQueuePath, long chunkSize)
         {
             _queueName = messageQueuePath;
+            byteMaxSizeForChunk = chunkSize;
         }
 
         /// <summary>

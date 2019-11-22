@@ -43,11 +43,9 @@ namespace ClientApp.Configure
                     _messageSender = new SingleMessageMessageSender(_queueName);
                     break;
                 case MessageType.Multiple:
-                    _messageSender = new MultipleMessageMessageSender(_queueName);
+                    _messageSender = new MultipleMessageMessageSender(_queueName, byteMaxSizeForChunk);
                     break;
             }
         }
-
-
     }
 }
