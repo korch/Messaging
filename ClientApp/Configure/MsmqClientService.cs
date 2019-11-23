@@ -1,9 +1,6 @@
 ﻿using ClientApp.Configure;
-using Experimental.System.Messaging;
 using System;
 using System.IO;
-using System.Reflection.PortableExecutable;
-using System.Text;
 using System.Threading;
 
 namespace ClientApp
@@ -12,13 +9,14 @@ namespace ClientApp
     {
         private const string ServerQueueName = @".\Private$\MsmqTRansferFileQueue";    
         private string _queuePath = string.Empty;
-
+        private bool _isDevOrQa;
         private Watcher _watcher;
         private ProcessingManager _manager;
 
-        public MsmqClientService()
+        public MsmqClientService(bool DevOrQa = false)
         {
-            _watcher = new Watcher();
+            _isDevOrQa = DevOrQa;
+            _watcher = new Watcher(_isDevOrQa);
         }
 
         public void Run()
@@ -30,19 +28,26 @@ namespace ClientApp
 
         private void SetServerQueueName()
         {
-            Console.WriteLine("Do you use a remote server queue? Y/N");
-            var answer = Console.ReadLine();
-
-            if (string.Equals(answer.ToLower(), "y"))
+            if (!_isDevOrQa)
             {
-                Console.WriteLine(
-                    "Please, write a full path for remote queue (pattern: FormatName:Direct=OS:machinename\\private$\\queuename)");
-                _queuePath = Console.ReadLine();
+                Console.WriteLine("Do you use a remote server queue? Y/N");
+                var answer = Console.ReadLine();
 
-                Console.WriteLine();
-                Console.WriteLine();
+                if (string.Equals(answer.ToLower(), "y"))
+                {
+                    Console.WriteLine(
+                        "Please, write a full path for remote queue (pattern: FormatName:Direct=OS:machinename\\private$\\queuename)");
+                    _queuePath = Console.ReadLine();
 
-                Console.WriteLine("Good! Now you uses a remote queue");
+                    Console.WriteLine();
+                    Console.WriteLine();
+
+                    Console.WriteLine("Good! Now you uses a remote queue");
+                }
+                else
+                {
+                    _queuePath = ServerQueueName;
+                }
             }
             else
                 _queuePath = ServerQueueName;

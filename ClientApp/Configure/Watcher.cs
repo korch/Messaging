@@ -8,12 +8,13 @@ namespace ClientApp.Configure
     internal class Watcher
     {
         private const string DefaultPath = "C:\\DefaultFolder\\";
-
+        private bool _isDevorQa;
         private FileSystemWatcher _watcher;
         private string _path;
 
-        public Watcher()
+        public Watcher(bool IsDevOrQa)
         {
+            _isDevorQa = IsDevOrQa;
             _watcher = new FileSystemWatcher();
           
             SetMonitoringPath();
@@ -22,24 +23,32 @@ namespace ClientApp.Configure
 
         private void SetMonitoringPath()
         {
-            Console.WriteLine("Do you wanna set specific folder path for monitoring files ? Y/N");
-            var answer = Console.ReadLine();
-
-            if (answer.ToLower() == "y")
+            if (!_isDevorQa)
             {
-                Console.WriteLine("Please, write here a new path:");
-                _path = Console.ReadLine();
-                _watcher.Path = _path;
-                Console.WriteLine("A new path was changed");
+                Console.WriteLine("Do you wanna set specific folder path for monitoring files ? Y/N");
+                var answer = Console.ReadLine();
+
+                if (answer.ToLower() == "y")
+                {
+                    Console.WriteLine("Please, write here a new path:");
+                    _path = Console.ReadLine();
+                    _watcher.Path = _path;
+                    Console.WriteLine("A new path was changed");
+                }
+                else
+                {
+                    Console.WriteLine($"You using a default path:{DefaultPath}");
+                    if (!Directory.Exists(DefaultPath))
+                        Directory.CreateDirectory(DefaultPath);
+
+                    _watcher.Path = DefaultPath;
+                }
             }
             else
             {
-                Console.WriteLine($"You using a default path:{DefaultPath}");
-                if (!Directory.Exists(DefaultPath))
-                    Directory.CreateDirectory(DefaultPath);
-
                 _watcher.Path = DefaultPath;
             }
+          
         }
 
         private void SetupWatcher()
