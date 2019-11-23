@@ -18,4 +18,10 @@
     <ProjectReference Include="..\ServerApp\ServerApp.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Sample-PDF-File.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

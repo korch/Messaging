@@ -9,11 +9,14 @@ using ServerApp.Msmq;
 
 namespace Tests
 {
+    /// <summary>
+    /// Important. I don't know why it happened, but if you want to run tests, you should run these test separately. Don't you Run All Tests button...
+    /// </summary>
     public class Tests
     {
         private string _folderToCheck;
         private string _folderToCopy;
-        private string _simplePdfFile;
+        private string _pdfFIleName;
 
         private MsmqService _serverService;
         private MsmqClientService _clientService;
@@ -23,35 +26,53 @@ namespace Tests
         {
             _folderToCheck = $"C://DefaultFolder";
             _folderToCopy = $"C://DefaultServerFolder";
-            _simplePdfFile = "Sample-PDF-File.pdf";
+            _pdfFIleName = "Sample-PDF-File.pdf";
 
-            if (!Directory.Exists(_folderToCheck)) {
+            if (!Directory.Exists(_folderToCheck))
+            {
                 Directory.CreateDirectory(_folderToCheck);
             }
 
-            if (!Directory.Exists(_folderToCopy)) {
+            if (!Directory.Exists(_folderToCopy))
+            {
                 Directory.CreateDirectory(_folderToCopy);
             }
 
             _serverService = new MsmqService();
             _serverService.Run();
 
-            _clientService = new MsmqClientService(DevOrQa:true);
+            _clientService = new MsmqClientService(DevOrQa: true);
             _clientService.Run();
         }
 
         [Test]
         public void SendSmallFileTest()
         {
-            GenerateSimplePDF();
+            GeneratePDF();
             //just to ensure that for these 5 seconds client app will find out a pdf file and send them to server via message queue.
             Thread.Sleep(5000);
 
-            Assert.IsTrue(File.Exists($"{_folderToCopy}//Sample-PDF-File.pdf"));
+            Assert.IsTrue(File.Exists($"{_folderToCopy}//{_pdfFIleName}"));
         }
 
+        [Test]
+        public void SendBigFileTest()
+        {
+            CreateBigFile();
 
-        private void GenerateSimplePDF()
+            //just to ensure that for these 5 seconds client app will find out a pdf file and send them to server via message queue.
+            Thread.Sleep(5000);
+
+            Assert.IsTrue(File.Exists($"{_folderToCopy}//{_pdfFIleName}"));
+        }
+
+        private void CreateBigFile()
+        {
+            File.Copy("Sample-PDF-File.pdf", $"{_folderToCheck}//{_pdfFIleName}");
+        }
+
+        //Why not do it like with big pdf file ? Just wanted to use something features to create a pdf file in C#.
+        private void GeneratePDF()
         {
             FileStream fs = new FileStream($"{_folderToCheck}//Sample-PDF-File.pdf", FileMode.Create);
 
@@ -71,8 +92,10 @@ namespace Tests
 
             // Open the document to enable you to write to the document  
             document.Open();
-            // Add a simple and wellknown phrase to the document in a flow layout manner  
+
+            // Add a simple and wellknown phrase to the document in a flow layout manner
             document.Add(new Paragraph("Hello World!"));
+
             // Close the document  
             document.Close();
             // Close the writer instance  
@@ -84,11 +107,11 @@ namespace Tests
         [TearDown]
         public void Down()
         {
-            if (File.Exists($"{_folderToCopy}//{_simplePdfFile}"))
-                File.Delete($"{_folderToCopy}//{_simplePdfFile}");
+            if (File.Exists($"{_folderToCopy}//{_pdfFIleName}"))
+                File.Delete($"{_folderToCopy}//{_pdfFIleName}");
 
-            if (File.Exists($"{_folderToCheck}//{_simplePdfFile}"))
-                File.Delete($"{_folderToCheck}//{_simplePdfFile}");
+            if (File.Exists($"{_folderToCheck}//{_pdfFIleName}"))
+                File.Delete($"{_folderToCheck}//{_pdfFIleName}");
 
             if (Directory.Exists(_folderToCheck))
                 Directory.Delete(_folderToCheck);

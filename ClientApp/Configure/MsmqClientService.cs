@@ -61,6 +61,8 @@ namespace ClientApp
 
             _manager.ProcessingFileSendingMessage(e.FullPath, fileStream);
 
+            fileStream.Dispose();
+
             Console.WriteLine($"File: {e.FullPath} which was {e.ChangeType} was sent to Server.");
         }
 
