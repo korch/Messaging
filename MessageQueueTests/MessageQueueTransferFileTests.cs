@@ -1,9 +1,13 @@
 using System.IO;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
+using Autofac;
+using Autofac.Core;
 using ClientApp;
+using ClientApp.Configure.Interfaces;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
+using MessageQueueTests;
 using NUnit.Framework;
 using ServerApp.Msmq;
 
@@ -12,14 +16,14 @@ namespace Tests
     /// <summary>
     /// Important. I don't know why it happened, but if you want to run tests, you should run these test separately. Don't you Run All Tests button...
     /// </summary>
-    public class Tests
+    public class MessageQueueTransferFileTests
     {
         private string _folderToCheck;
         private string _folderToCopy;
         private string _pdfFIleName;
 
         private MsmqService _serverService;
-        private MsmqClientService _clientService;
+        private IService _clientService;
 
         [SetUp]
         public void Setup()
@@ -28,20 +32,21 @@ namespace Tests
             _folderToCopy = $"C://DefaultServerFolder";
             _pdfFIleName = "Sample-PDF-File.pdf";
 
-            if (!Directory.Exists(_folderToCheck))
-            {
+            if (!Directory.Exists(_folderToCheck)) {
                 Directory.CreateDirectory(_folderToCheck);
             }
 
-            if (!Directory.Exists(_folderToCopy))
-            {
+            if (!Directory.Exists(_folderToCopy)) {
                 Directory.CreateDirectory(_folderToCopy);
             }
+
+            var container = CompositionRoot.Get();
 
             _serverService = new MsmqService();
             _serverService.Run();
 
-            _clientService = new MsmqClientService(DevOrQa: true);
+            _clientService = container.Resolve<IService>();
+            _clientService.SetMonitoringFolder(_folderToCheck);
             _clientService.Run();
         }
 
@@ -66,6 +71,7 @@ namespace Tests
             Assert.IsTrue(File.Exists($"{_folderToCopy}//{_pdfFIleName}"));
         }
 
+        #region support methods
         private void CreateBigFile()
         {
             File.Copy("Sample-PDF-File.pdf", $"{_folderToCheck}//{_pdfFIleName}");
@@ -103,6 +109,7 @@ namespace Tests
             // Always close open filehandles explicity  
             fs.Close();
         }
+#endregion
 
         [TearDown]
         public void Down()

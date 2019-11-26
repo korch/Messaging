@@ -2,55 +2,31 @@
 using System;
 using System.IO;
 using System.Threading;
+using ClientApp.Configure.Interfaces;
 
 namespace ClientApp
 {
-    public class MsmqClientService : IDisposable
+    public class MsmqClientService : IService, IDisposable
     {
-        private const string ServerQueueName = @".\Private$\MsmqTRansferFileQueue";    
-        private string _queuePath = string.Empty;
-        private bool _isDevOrQa;
-        private Watcher _watcher;
-        private ProcessingManager _manager;
+        private IWatcher _watcher;
+        private readonly IProcessingManager _manager;
 
-        public MsmqClientService(bool DevOrQa = false)
+        public MsmqClientService(IWatcher watcher, IProcessingManager manager)
         {
-            _isDevOrQa = DevOrQa;
-            _watcher = new Watcher(_isDevOrQa);
+            _watcher = watcher;
+            _manager = manager;
         }
 
         public void Run()
         {
-            SetServerQueueName();
+            _watcher.SetFileType("*.pdf");
             _watcher.SetCreateHandler(OnChanged);
-            _manager = new ProcessingManager(_queuePath);
+            _watcher.EnableWatcher(true);
         }
 
-        private void SetServerQueueName()
+        public void SetMonitoringFolder(string path)
         {
-            if (!_isDevOrQa)
-            {
-                Console.WriteLine("Do you use a remote server queue? Y/N");
-                var answer = Console.ReadLine();
-
-                if (string.Equals(answer.ToLower(), "y"))
-                {
-                    Console.WriteLine(
-                        "Please, write a full path for remote queue (pattern: FormatName:Direct=OS:machinename\\private$\\queuename)");
-                    _queuePath = Console.ReadLine();
-
-                    Console.WriteLine();
-                    Console.WriteLine();
-
-                    Console.WriteLine("Good! Now you uses a remote queue");
-                }
-                else
-                {
-                    _queuePath = ServerQueueName;
-                }
-            }
-            else
-                _queuePath = ServerQueueName;
+            _watcher.SetMonitoringFolder(path);
         }
 
         // Define the event handlers.
@@ -76,11 +52,10 @@ namespace ClientApp
         {
             if (disposing) {
                 _watcher = null;
-            }  
+            }
         }
 
-        ~MsmqClientService()
-        {
+        ~MsmqClientService() {
             Dispose(false);
         }
     }

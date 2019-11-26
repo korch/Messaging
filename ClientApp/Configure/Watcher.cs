@@ -2,72 +2,51 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using ClientApp.Configure.Interfaces;
 
 namespace ClientApp.Configure
 {
-    internal class Watcher
+    public class Watcher : FileSystemWatcher, IWatcher
     {
-        private const string DefaultPath = "C:\\DefaultFolder\\";
-        private bool _isDevorQa;
-        private FileSystemWatcher _watcher;
-        private string _path;
 
-        public Watcher(bool IsDevOrQa)
+        public Watcher()
         {
-            _isDevorQa = IsDevOrQa;
-            _watcher = new FileSystemWatcher();
-          
-            SetMonitoringPath();
-            SetupWatcher();
+            SetupDefaultNotifiedFilters();
         }
 
-        private void SetMonitoringPath()
+        /// <summary>
+        /// Set the file type for searching file. for example: '*.pdf' to search only pdf files.
+        /// </summary>
+        /// <param name="type"></param>
+        public void SetFileType(string type)
         {
-            if (!_isDevorQa)
-            {
-                Console.WriteLine("Do you wanna set specific folder path for monitoring files ? Y/N");
-                var answer = Console.ReadLine();
-
-                if (answer.ToLower() == "y")
-                {
-                    Console.WriteLine("Please, write here a new path:");
-                    _path = Console.ReadLine();
-                    _watcher.Path = _path;
-                    Console.WriteLine("A new path was changed");
-                }
-                else
-                {
-                    Console.WriteLine($"You using a default path:{DefaultPath}");
-                    if (!Directory.Exists(DefaultPath))
-                        Directory.CreateDirectory(DefaultPath);
-
-                    _watcher.Path = DefaultPath;
-                }
-            }
-            else
-            {
-                _watcher.Path = DefaultPath;
-            }
-          
-        }
-
-        private void SetupWatcher()
-        {
-            _watcher.NotifyFilter = NotifyFilters.LastAccess
-                                 | NotifyFilters.LastWrite
-                                 | NotifyFilters.FileName
-                                 | NotifyFilters.DirectoryName;
-
-            // only pdf files
-            _watcher.Filter = "*.pdf";
-
-            // Begin watching.
-            _watcher.EnableRaisingEvents = true;
+            this.Filter = type;
         }
 
         public void SetCreateHandler(FileSystemEventHandler handler)
         {
-            _watcher.Created += handler;
+            this.Created += handler;
+        }
+
+        public void SetMonitoringFolder(string path)
+        {
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            this.Path = path;
+        }
+
+        public void EnableWatcher(bool enable)
+        {
+            this.EnableRaisingEvents = enable;
+        }
+
+        private void SetupDefaultNotifiedFilters()
+        {
+            this.NotifyFilter = NotifyFilters.LastAccess
+                                | NotifyFilters.LastWrite
+                                | NotifyFilters.FileName
+                                | NotifyFilters.DirectoryName;
         }
     }
 }

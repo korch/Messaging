@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Configuration;
+using System.IO;
+using ClientApp.Configure.Interfaces;
 using ClientApp.Configure.MessageSenders;
 
 namespace ClientApp.Configure
@@ -10,18 +12,19 @@ namespace ClientApp.Configure
         Multiple = 2
     }
 
-    public class ProcessingManager
+    public class ProcessingManager : IProcessingManager
     {
+        private const string AppSettingsMessageQueueServerName = "MessageQueueServerName";
         private const long byteMaxSizeForChunk = 3000000;
 
         private MessageType _messageType;
         private IMessageSender _messageSender;
 
-        private string _queueName;
+        private string _messageQueueServer;
 
-        public ProcessingManager(string queueName)
+        public ProcessingManager()
         {
-            _queueName = queueName;
+            _messageQueueServer = ConfigurationManager.AppSettings[AppSettingsMessageQueueServerName];
         }
 
         public void ProcessingFileSendingMessage(string filePath, Stream stream)
@@ -37,10 +40,10 @@ namespace ClientApp.Configure
             switch (type)
             {
                 case MessageType.Single:
-                    _messageSender = new SingleMessageMessageSender(_queueName);
+                    _messageSender = new SingleMessageMessageSender(_messageQueueServer);
                     break;
                 case MessageType.Multiple:
-                    _messageSender = new MultipleMessageMessageSender(_queueName, byteMaxSizeForChunk);
+                    _messageSender = new MultipleMessageMessageSender(_messageQueueServer, byteMaxSizeForChunk);
                     break;
             }
         }
