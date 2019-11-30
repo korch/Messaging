@@ -23,7 +23,7 @@ namespace ClientApp.Configure.MessageSenders
         {
             using (var serverQueue = new MessageQueue(_queueName, QueueAccessMode.Send)) {
                 try {
-                    var message = CreateMessage(stream, path);
+                    var message = CreateMessage(stream, Path.GetFileName(path));
 
                     Send(serverQueue, message);
                     stream.Close();

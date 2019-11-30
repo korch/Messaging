@@ -56,7 +56,7 @@ namespace Tests
         {
             GeneratePDF();
             //just to ensure that for these 5 seconds client app will find out a pdf file and send them to server via message queue.
-            Thread.Sleep(3000);
+            Thread.Sleep(5000);
 
             Assert.IsTrue(File.Exists($"{_folderToCopy}//{_pdfFIleName}"));
         }
