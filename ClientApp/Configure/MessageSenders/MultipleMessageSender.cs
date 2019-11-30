@@ -68,19 +68,25 @@ namespace ClientApp.Configure.MessageSenders
         /// <param name="stream"></param>
         /// <param name="label"></param>
         /// <param name="appSpecific"></param>
-        private void SendMessage(MessageQueue queue, Stream stream, string label, int appSpecific)
+        public virtual void SendMessage(MessageQueue queue, Stream stream, string label, int appSpecific)
         {
-            var message = new Message {
+            var message = CreateMessage(stream, label, appSpecific);
+
+            queue.Send(message);
+
+            message.Dispose();
+        }
+
+        public virtual Message CreateMessage(Stream stream, string label, int appSpecific)
+        {
+            return new Message
+            {
                 BodyStream = stream,
                 Label = label,
                 Priority = MessagePriority.Normal,
                 Formatter = new BinaryMessageFormatter(),
                 AppSpecific = appSpecific
             };
-
-            queue.Send(message);
-
-            message.Dispose();
         }
     }
 }

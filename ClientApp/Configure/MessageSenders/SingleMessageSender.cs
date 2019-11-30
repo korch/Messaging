@@ -23,22 +23,31 @@ namespace ClientApp.Configure.MessageSenders
         {
             using (var serverQueue = new MessageQueue(_queueName, QueueAccessMode.Send)) {
                 try {
-                    var message = new Message
-                    {
-                        BodyStream = stream,
-                        Label = Path.GetFileName(path),
-                        Priority = MessagePriority.Normal,
-                        Formatter = new BinaryMessageFormatter(),
-                        AppSpecific = 100
-                    };
+                    var message = CreateMessage(stream, path);
 
-                    serverQueue.Send(message);
+                    Send(serverQueue, message);
                     stream.Close();
                 } catch (Exception e) {
                     throw new InvalidOperationException(e.Message);
                 }
             }
             return true;
+        }
+
+        public virtual void Send(MessageQueue queue, Message message)
+        {
+            queue.Send(message);
+        }
+
+        public virtual Message CreateMessage(Stream stream, string label)
+        {
+            return new Message {
+                BodyStream = stream,
+                Label = label,
+                Priority = MessagePriority.Normal,
+                Formatter = new BinaryMessageFormatter(),
+                AppSpecific = 100
+            };
         }
     }
 }
