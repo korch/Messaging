@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ClientApp.Configure.Interfaces
 {
-    public interface IWatcher
+    public interface IWatcher : IDisposable
     {
         void SetMonitoringFolder(string path);
         void SetFileType(string type);

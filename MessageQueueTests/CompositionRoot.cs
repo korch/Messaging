@@ -1,5 +1,4 @@
 ﻿using Autofac;
-using ClientApp;
 using ClientApp.Configure;
 using ClientApp.Configure.Interfaces;
 

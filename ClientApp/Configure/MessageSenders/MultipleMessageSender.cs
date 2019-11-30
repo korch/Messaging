@@ -6,12 +6,12 @@ using Experimental.System.Messaging;
 
 namespace ClientApp.Configure.MessageSenders
 {
-    public class MultipleMessageMessageSender : IMessageSender
+    public class MultipleMessageSender : IMessageSender
     {
         private readonly string _queueName;
         private long byteMaxSizeForChunk = 0;
 
-        public MultipleMessageMessageSender(string messageQueuePath, long chunkSize)
+        public MultipleMessageSender(string messageQueuePath, long chunkSize)
         {
             _queueName = messageQueuePath;
             byteMaxSizeForChunk = chunkSize;

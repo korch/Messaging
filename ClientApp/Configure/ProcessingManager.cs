@@ -1,11 +1,11 @@
 ﻿using System.Configuration;
 using System.IO;
+using System.Reflection;
 using ClientApp.Configure.Interfaces;
 using ClientApp.Configure.MessageSenders;
 
 namespace ClientApp.Configure
 {
-
     public enum MessageType
     {
         Single = 1,
@@ -24,7 +24,7 @@ namespace ClientApp.Configure
 
         public ProcessingManager()
         {
-            _messageQueueServer = ConfigurationManager.AppSettings[AppSettingsMessageQueueServerName];
+          _messageQueueServer = GetMessageQueueName();
         }
 
         public void ProcessingFileSendingMessage(string filePath, Stream stream)
@@ -40,12 +40,20 @@ namespace ClientApp.Configure
             switch (type)
             {
                 case MessageType.Single:
-                    _messageSender = new SingleMessageMessageSender(_messageQueueServer);
+                    _messageSender = new SingleMessageSender(_messageQueueServer);
                     break;
                 case MessageType.Multiple:
-                    _messageSender = new MultipleMessageMessageSender(_messageQueueServer, byteMaxSizeForChunk);
+                    _messageSender = new MultipleMessageSender(_messageQueueServer, byteMaxSizeForChunk);
                     break;
             }
+        }
+
+        private string GetMessageQueueName()
+        {
+            return ConfigurationManager.
+                OpenExeConfiguration(Assembly.GetExecutingAssembly().Location)
+                .AppSettings
+                .Settings[AppSettingsMessageQueueServerName].Value;
         }
     }
 }

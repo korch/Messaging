@@ -6,11 +6,15 @@ using ClientApp.Configure.Interfaces;
 
 namespace ClientApp.Configure
 {
-    public class Watcher : FileSystemWatcher, IWatcher
+    public class Watcher : IWatcher
     {
+        private FileSystemWatcher _watcher;
+
+        public string MonitoringFolder => _watcher.Path;
 
         public Watcher()
         {
+            _watcher = new FileSystemWatcher();
             SetupDefaultNotifiedFilters();
         }
 
@@ -20,12 +24,12 @@ namespace ClientApp.Configure
         /// <param name="type"></param>
         public void SetFileType(string type)
         {
-            this.Filter = type;
+            _watcher.Filter = type;
         }
 
         public void SetCreateHandler(FileSystemEventHandler handler)
         {
-            this.Created += handler;
+            _watcher.Created += handler;
         }
 
         public void SetMonitoringFolder(string path)
@@ -33,20 +37,40 @@ namespace ClientApp.Configure
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            this.Path = path;
+            _watcher.Path = path;
         }
 
         public void EnableWatcher(bool enable)
         {
-            this.EnableRaisingEvents = enable;
+            _watcher.EnableRaisingEvents = enable;
         }
 
         private void SetupDefaultNotifiedFilters()
         {
-            this.NotifyFilter = NotifyFilters.LastAccess
+            _watcher.NotifyFilter = NotifyFilters.LastAccess
                                 | NotifyFilters.LastWrite
                                 | NotifyFilters.FileName
                                 | NotifyFilters.DirectoryName;
+        }
+
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _watcher.Dispose();
+            }
+        }
+
+        ~Watcher()
+        {
+            Dispose(false);
         }
     }
 }

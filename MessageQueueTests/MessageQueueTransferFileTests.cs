@@ -39,12 +39,12 @@ namespace Tests
             if (!Directory.Exists(_folderToCopy)) {
                 Directory.CreateDirectory(_folderToCopy);
             }
-
+        
             var container = CompositionRoot.Get();
 
             _serverService = new MsmqService();
             _serverService.Run();
-
+            
             _clientService = container.Resolve<IService>();
             _clientService.SetMonitoringFolder(_folderToCheck);
             _clientService.Run();
@@ -55,7 +55,7 @@ namespace Tests
         {
             GeneratePDF();
             //just to ensure that for these 5 seconds client app will find out a pdf file and send them to server via message queue.
-            Thread.Sleep(5000);
+            Thread.Sleep(3000);
 
             Assert.IsTrue(File.Exists($"{_folderToCopy}//{_pdfFIleName}"));
         }

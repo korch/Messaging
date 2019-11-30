@@ -7,7 +7,7 @@ using Experimental.System.Messaging;
 
 namespace ServerApp.Msmq
 {
-    public class MsmqService
+    public class MsmqService : IServer
     {
         Thread workThread;
         ManualResetEvent stopWorkEvent;

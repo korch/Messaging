@@ -1,14 +1,16 @@
-﻿using ClientApp.Configure;
-using System;
+﻿using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using ClientApp.Configure.Interfaces;
 
-namespace ClientApp
+[assembly: InternalsVisibleTo("MessageQueueTests")]
+
+namespace ClientApp.Configure
 {
-    public class MsmqClientService : IService, IDisposable
+    internal class MsmqClientService : IService, IDisposable
     {
-        private IWatcher _watcher;
+        private readonly IWatcher _watcher;
         private readonly IProcessingManager _manager;
 
         public MsmqClientService(IWatcher watcher, IProcessingManager manager)
@@ -33,6 +35,7 @@ namespace ClientApp
         private void OnChanged(object source, FileSystemEventArgs e)
         {
             Thread.Sleep(3000);
+          
             var fileStream = new FileStream(e.FullPath, FileMode.Open);
 
             _manager.ProcessingFileSendingMessage(e.FullPath, fileStream);
@@ -51,7 +54,7 @@ namespace ClientApp
         protected virtual void Dispose(bool disposing)
         {
             if (disposing) {
-                _watcher = null;
+                _watcher.Dispose();
             }
         }
 

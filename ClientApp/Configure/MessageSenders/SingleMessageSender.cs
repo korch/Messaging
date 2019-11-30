@@ -6,11 +6,11 @@ using Experimental.System.Messaging;
 
 namespace ClientApp.Configure.MessageSenders
 {
-    public class SingleMessageMessageSender : IMessageSender
+    public class SingleMessageSender : IMessageSender
     {
         private readonly string _queueName;
 
-        public SingleMessageMessageSender(string messageQueuePath)
+        public SingleMessageSender(string messageQueuePath)
         {
             _queueName = messageQueuePath;
         }
