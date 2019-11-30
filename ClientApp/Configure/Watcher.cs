@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using ClientApp.Configure.Interfaces;
@@ -11,7 +12,9 @@ namespace ClientApp.Configure
         private FileSystemWatcher _watcher;
 
         public string MonitoringFolder => _watcher.Path;
-
+        public string Filter => _watcher.Filter;
+        public bool IsRunning => _watcher.EnableRaisingEvents;
+        
         public Watcher()
         {
             _watcher = new FileSystemWatcher();
@@ -27,13 +30,22 @@ namespace ClientApp.Configure
             _watcher.Filter = type;
         }
 
-        public void SetCreateHandler(FileSystemEventHandler handler)
+        public bool SetCreateHandler(FileSystemEventHandler handler)
         {
+            if (handler is null)
+               throw new NullReferenceException("parameter is null");
+                
+            
             _watcher.Created += handler;
+
+            return true;
         }
 
         public void SetMonitoringFolder(string path)
         {
+            if (string.IsNullOrEmpty(path))
+                throw new InvalidOperationException("parameter is null or empty");
+
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 

@@ -9,7 +9,7 @@ namespace ClientApp.Configure.Interfaces
     {
         void SetMonitoringFolder(string path);
         void SetFileType(string type);
-        void SetCreateHandler(FileSystemEventHandler handler);
         void EnableWatcher(bool enable);
+        bool SetCreateHandler(FileSystemEventHandler handler);
     }
 }

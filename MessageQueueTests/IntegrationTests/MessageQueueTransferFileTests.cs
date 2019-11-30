@@ -16,6 +16,7 @@ namespace Tests
     /// <summary>
     /// Important. I don't know why it happened, but if you want to run tests, you should run these test separately. Don't you Run All Tests button...
     /// </summary>
+    [TestFixture]
     public class MessageQueueTransferFileTests
     {
         private string _folderToCheck;
