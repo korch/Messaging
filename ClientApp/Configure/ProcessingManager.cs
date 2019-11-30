@@ -1,8 +1,12 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using ClientApp.Configure.Interfaces;
 using ClientApp.Configure.MessageSenders;
+
+[assembly: InternalsVisibleTo("MessageQueueTests")]
 
 namespace ClientApp.Configure
 {
@@ -16,36 +20,44 @@ namespace ClientApp.Configure
     {
         private const string AppSettingsMessageQueueServerName = "MessageQueueServerName";
         private const long byteMaxSizeForChunk = 3000000;
-
-        private MessageType _messageType;
-        private IMessageSender _messageSender;
-
-        private string _messageQueueServer;
+        private readonly string _messageQueueServer;
 
         public ProcessingManager()
         {
-          _messageQueueServer = GetMessageQueueName();
+            _messageQueueServer = GetMessageQueueName();
         }
 
-        public void ProcessingFileSendingMessage(string filePath, Stream stream)
+        public bool ProcessingFileSendingMessage(string filePath, Stream stream)
         {
-            _messageType = stream.Length > byteMaxSizeForChunk ? MessageType.Multiple : MessageType.Single;
+            if (string.IsNullOrEmpty(filePath))
+                throw new InvalidOperationException("file is null or empty");
 
-            GetMessageSender(_messageType);
-            _messageSender.SendFile(filePath, stream);
+            if (stream is null)
+                throw new NullReferenceException("stream is null");
+
+            var type  = stream.Length > byteMaxSizeForChunk ? MessageType.Multiple : MessageType.Single;
+            var messageSender = GetMessageSender(type);
+
+            SendMessage(messageSender, filePath, stream);
+
+            return true;
         }
 
-        private void GetMessageSender(MessageType type)
+        public virtual IMessageSender GetMessageSender(MessageType type)
         {
-            switch (type)
-            {
+            switch (type) {
                 case MessageType.Single:
-                    _messageSender = new SingleMessageSender(_messageQueueServer);
-                    break;
+                    return new SingleMessageSender(_messageQueueServer);
                 case MessageType.Multiple:
-                    _messageSender = new MultipleMessageSender(_messageQueueServer, byteMaxSizeForChunk);
-                    break;
+                    return new MultipleMessageSender(_messageQueueServer, byteMaxSizeForChunk);
+                default:
+                    return new SingleMessageSender(_messageQueueServer);
             }
+        }
+
+        public virtual void SendMessage(IMessageSender messageSender, string filePath, Stream stream)
+        {
+            messageSender.SendFile(filePath, stream);
         }
 
         private string GetMessageQueueName()

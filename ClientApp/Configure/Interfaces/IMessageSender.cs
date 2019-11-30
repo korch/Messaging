@@ -7,6 +7,6 @@ namespace ClientApp.Configure.MessageSenders
 {
     public interface IMessageSender
     {
-        void SendFile(string path, Stream stream);
+        bool SendFile(string path, Stream stream);
     }
 }
