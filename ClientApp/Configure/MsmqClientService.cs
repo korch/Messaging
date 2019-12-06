@@ -21,28 +21,32 @@ namespace ClientApp.Configure
 
         public void Run()
         {
-            _watcher.SetFileType("*.pdf");
-            _watcher.SetCreateHandler(OnChanged);
-            _watcher.EnableWatcher(true);
-        }
-
-        public void SetMonitoringFolder(string path)
-        {
-            _watcher.SetMonitoringFolder(path);
+            _watcher.OnCreated += OnChanged;
+           _watcher.Start();
         }
 
         // Define the event handlers.
         private void OnChanged(object source, FileSystemEventArgs e)
         {
-            Thread.Sleep(3000);
-          
-            var fileStream = new FileStream(e.FullPath, FileMode.Open);
+            while(!IsFileReady(e.FullPath)) { }
 
-            _manager.ProcessingFileSendingMessage(e.FullPath, fileStream);
+            var fileLength = new FileInfo(e.FullPath).Length;
 
-            fileStream.Dispose();
+            _manager.ProcessingFileSendingMessage(e.FullPath, fileLength);
 
             Console.WriteLine($"File: {e.FullPath} which was {e.ChangeType} was sent to Server.");
+        }
+
+        private bool IsFileReady(string filename)
+        {
+            // If the file can be opened for exclusive access it means that the file
+            // is no longer locked by another process.
+            try {
+                using (FileStream inputStream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None))
+                    return inputStream.Length > 0;
+            } catch (Exception) {
+                return false;
+            }
         }
 
         public void Dispose()

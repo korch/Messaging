@@ -7,9 +7,7 @@ namespace ClientApp.Configure.Interfaces
 {
     public interface IWatcher : IDisposable
     {
-        void SetMonitoringFolder(string path);
-        void SetFileType(string type);
-        void EnableWatcher(bool enable);
-        bool SetCreateHandler(FileSystemEventHandler handler);
+        void Start();
+        event FileSystemEventHandler OnCreated;
     }
 }

@@ -23,8 +23,6 @@ namespace ClientApp
             Console.WriteLine("Msmq client app starting work...!");
 
             var service = CompositionRoot().Resolve<IService>();
-            
-            service.SetMonitoringFolder("C:\\DefaultFolder\\");
             service.Run();
             
             Console.ReadKey(true);

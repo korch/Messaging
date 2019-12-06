@@ -25,52 +25,9 @@ namespace MessageQueueTests.ClientAppTests
         }
 
         [Test]
-        public void SetFileTypeTest()
-        {
-            var type = "*.pdf";
-
-            _watcher.SetFileType(type);
-            Assert.AreEqual(type, ((Watcher)_watcher).Filter);
-        }
-
-        [Test]
-        public void SetCreateHandlerTest()
-        {
-            var result = _watcher.SetCreateHandler(OnChanged);
-
-            Assert.IsTrue(result);
-        }
-
-        [Test]
-        public void SetCreateHandlerExceptionTest()
-        {
-            Assert.Throws<NullReferenceException>(
-                () => _watcher.SetCreateHandler(null));
-        }
-
-        [Test]
-        public void SetMonitoringFolderTest()
-        {
-            _watcher.SetMonitoringFolder(_monitoringFolder);
-
-            Assert.AreEqual(_monitoringFolder, ((Watcher)_watcher).MonitoringFolder);
-            Assert.IsTrue(Directory.Exists(_monitoringFolder));
-        }
-
-        [Test]
-        public void SetMonitoringFolderExceptionTest()
-        {
-            Assert.Throws<InvalidOperationException>(
-                () => _watcher.SetMonitoringFolder(null));
-            Assert.Throws<InvalidOperationException>(
-                () => _watcher.SetMonitoringFolder(""));
-        }
-
-        [Test]
         public void EnableWatcherTest()
         {
-            _watcher.SetMonitoringFolder(_monitoringFolder);
-            _watcher.EnableWatcher(true);
+           _watcher.Start();
 
             Assert.IsTrue(((Watcher)_watcher).IsRunning);
         }

@@ -47,7 +47,6 @@ namespace Tests
             _serverService.Run();
             
             _clientService = container.Resolve<IService>();
-            _clientService.SetMonitoringFolder(_folderToCheck);
             _clientService.Run();
         }
 

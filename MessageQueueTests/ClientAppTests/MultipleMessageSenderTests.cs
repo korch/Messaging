@@ -33,7 +33,7 @@ namespace MessageQueueTests.ClientAppTests
 
             messageSenderMock.Setup(m => m.SendMessage(It.IsAny<MessageQueue>(), It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<int>())).Verifiable();
             
-            var result = messageSenderMock.Object.SendFile("file", new MemoryStream());
+            var result = messageSenderMock.Object.SendFile("file");
 
             Assert.IsTrue(result);
         }
@@ -44,10 +44,10 @@ namespace MessageQueueTests.ClientAppTests
             var sender = new MultipleMessageSender("blabla", 1);
 
             Assert.Throws<InvalidOperationException>(
-                () => sender.SendFile("", new MemoryStream()));
+                () => sender.SendFile(""));
 
             Assert.Throws<InvalidOperationException>(
-                () => sender.SendFile("bla", null));
+                () => sender.SendFile("bla"));
         }
     }
 }

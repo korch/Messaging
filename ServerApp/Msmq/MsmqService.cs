@@ -21,6 +21,9 @@ namespace ServerApp.Msmq
         {
             CreateQueue();
 
+            if (!Directory.Exists(DefaultPath))
+                Directory.CreateDirectory(DefaultPath);
+
             stopWorkEvent = new ManualResetEvent(false);
             _messages = new List<Message>();
 

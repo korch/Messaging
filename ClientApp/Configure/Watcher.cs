@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using ClientApp.Configure.Interfaces;
 
@@ -9,7 +11,12 @@ namespace ClientApp.Configure
 {
     public class Watcher : IWatcher
     {
-        private FileSystemWatcher _watcher;
+        private const string AppSettingsFileFilter = "WatcherFileType";
+        private const string AppSettingsMonitoringFolder = "MonitoringFolder";
+
+        private readonly FileSystemWatcher _watcher;
+
+        public event FileSystemEventHandler OnCreated;
 
         public string MonitoringFolder => _watcher.Path;
         public string Filter => _watcher.Filter;
@@ -18,43 +25,17 @@ namespace ClientApp.Configure
         public Watcher()
         {
             _watcher = new FileSystemWatcher();
+        
+
+            ReadAppSettings();
             SetupDefaultNotifiedFilters();
         }
 
-        /// <summary>
-        /// Set the file type for searching file. for example: '*.pdf' to search only pdf files.
-        /// </summary>
-        /// <param name="type"></param>
-        public void SetFileType(string type)
+
+        public void Start()
         {
-            _watcher.Filter = type;
-        }
-
-        public bool SetCreateHandler(FileSystemEventHandler handler)
-        {
-            if (handler is null)
-               throw new NullReferenceException("parameter is null");
-                
-            
-            _watcher.Created += handler;
-
-            return true;
-        }
-
-        public void SetMonitoringFolder(string path)
-        {
-            if (string.IsNullOrEmpty(path))
-                throw new InvalidOperationException("parameter is null or empty");
-
-            if (!Directory.Exists(path))
-                Directory.CreateDirectory(path);
-
-            _watcher.Path = path;
-        }
-
-        public void EnableWatcher(bool enable)
-        {
-            _watcher.EnableRaisingEvents = enable;
+            _watcher.Created += OnCreated;
+            _watcher.EnableRaisingEvents = true;
         }
 
         private void SetupDefaultNotifiedFilters()
@@ -63,6 +44,17 @@ namespace ClientApp.Configure
                                 | NotifyFilters.LastWrite
                                 | NotifyFilters.FileName
                                 | NotifyFilters.DirectoryName;
+        }
+
+        private void ReadAppSettings()
+        {
+            _watcher.Filter = ConfigurationManager.OpenExeConfiguration(Assembly.GetExecutingAssembly().Location).AppSettings.Settings[AppSettingsFileFilter].Value;
+
+            var folder = ConfigurationManager.OpenExeConfiguration(Assembly.GetExecutingAssembly().Location).AppSettings.Settings[AppSettingsMonitoringFolder].Value;
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
+
+            _watcher.Path = folder;
         }
 
 

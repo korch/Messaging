@@ -19,16 +19,21 @@ namespace ClientApp.Configure.MessageSenders
         /// Process single message. When we shouldn't split a byte array for chunks
         /// </summary>
         /// <param name="fullPath"></param>
-        public bool SendFile(string path, Stream stream)
+        public bool SendFile(string path)
         {
             using (var serverQueue = new MessageQueue(_queueName, QueueAccessMode.Send)) {
+                var fileStream = new FileStream(path, FileMode.Open);
                 try {
-                    var message = CreateMessage(stream, Path.GetFileName(path));
+                    var message = CreateMessage(Path.GetFileName(path));
 
+                    message.BodyStream = fileStream;
                     Send(serverQueue, message);
-                    stream.Close();
+
+                    message.Dispose();
                 } catch (Exception e) {
                     throw new InvalidOperationException(e.Message);
+                } finally {
+                    fileStream.Close();
                 }
             }
             return true;
@@ -39,10 +44,9 @@ namespace ClientApp.Configure.MessageSenders
             queue.Send(message);
         }
 
-        public virtual Message CreateMessage(Stream stream, string label)
+        public virtual Message CreateMessage(string label)
         {
             return new Message {
-                BodyStream = stream,
                 Label = label,
                 Priority = MessagePriority.Normal,
                 Formatter = new BinaryMessageFormatter(),
