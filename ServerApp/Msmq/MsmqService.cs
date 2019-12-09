@@ -40,7 +40,6 @@ namespace ServerApp.Msmq
             Task.Run(Server);
         }
 
-
         private void CreateQueue()
         {
             if (!MessageQueue.Exists(ServerQueueName)) {
@@ -72,6 +71,7 @@ namespace ServerApp.Msmq
 
         private async Task CopyFiles()
         {
+            await Task.Run(() => {
                 if (_filesToCopy.Any(f => f.State == FileTransferPullState.ReadyToTransfer)) {
                     lock (locker) {
                         var files = _filesToCopy.Where(f => f.State == FileTransferPullState.ReadyToTransfer);
@@ -85,6 +85,7 @@ namespace ServerApp.Msmq
                         _filesToCopy = _filesToCopy.Where(f => !f.IsCopied).ToList();
                     }
                 }
+            });
         }
 
         private async Task MessageProcess(Message message)
