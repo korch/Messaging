@@ -25,7 +25,7 @@ namespace ServerApp.Msmq
         private int _multipleCommonMessageIdentificator;
         private int _multipleMessageEndIdentificator;
 
-        private object locker = new object();
+        private readonly object locker = new object();
 
         public void Run()
         {
@@ -150,26 +150,6 @@ namespace ServerApp.Msmq
 
             return ftc;
         }
-
-        //private void MessageProcess(Message message)
-        //{
-        //    if (message.AppSpecific == _singleMessageIdentificator) {
-        //        var processor = GetMessageProcessorHelper.GetMessageProcessor(MessageType.Single);
-        //        processor.Processing(new List<Message>() { message });
-
-        //        var text = string.Format($"Received file with name {message.Label}\n from the client");
-        //        Console.WriteLine(text);
-        //    }
-
-        //    if (message.AppSpecific == _multipleMessageEndIdentificator) {
-        //        var processor = GetMessageProcessorHelper.GetMessageProcessor(MessageType.Multiple);
-        //        processor.Processing(_messages);
-
-        //        var text = string.Format($"Received file with name {message.Label}\n from the client");
-        //        Console.WriteLine(text);
-        //    } else
-        //        _messages.Add(message);
-        //}
 
         private void ReadAppSettings()
         {
