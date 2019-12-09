@@ -115,11 +115,9 @@ namespace ServerApp.Msmq
 
             if (message.AppSpecific == _multipleMessageEndIdentificator) {
                 var ftc = GetFileTransferObject(message);
-                var indexof = _filesToCopy.IndexOf(ftc);
+             
                 if (ftc != null)
                     ftc.State = FileTransferPullState.ReadyToTransfer;
-
-                _filesToCopy[indexof] = ftc;
             }
 
             await CopyFiles();
