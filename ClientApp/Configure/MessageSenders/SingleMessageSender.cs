@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Experimental.System.Messaging;
+
+[assembly: InternalsVisibleTo("MessageQueueTests")]
 
 namespace ClientApp.Configure.MessageSenders
 {
@@ -47,7 +50,7 @@ namespace ClientApp.Configure.MessageSenders
             queue.Send(message);
         }
 
-        private Message CreateMessage(string label)
+        internal Message CreateMessage(string label)
         {
             return new Message {
                 Label = label,
