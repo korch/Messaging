@@ -37,7 +37,7 @@ namespace ClientApp.Configure
             var type  = fileSize > _byteMaxSizeForChunk ? MessageType.Multiple : MessageType.Single;
             var messageSender = GetMessageSender(type);
 
-            SendMessage(messageSender, fullFilePath);
+            messageSender.SendFile(fullFilePath);
 
             return true;
         }
@@ -52,11 +52,6 @@ namespace ClientApp.Configure
                 default:
                     return new SingleMessageSender(_messageQueueServer);
             }
-        }
-
-        public virtual void SendMessage(IMessageSender messageSender, string filePath)
-        {
-            messageSender.SendFile(filePath);
         }
 
         private void ReadAppSettings()

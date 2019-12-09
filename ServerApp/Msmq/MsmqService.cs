@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.Configuration;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Experimental.System.Messaging;
@@ -152,12 +153,18 @@ namespace ServerApp.Msmq
 
         private void ReadAppSettings()
         {
-            ServerQueueName = ConfigurationManager.AppSettings["MessageQueueName"];
-            DefaultPath = ConfigurationManager.AppSettings["FolderToCopy"];
-            _singleMessageIdentificator = int.Parse(ConfigurationManager.AppSettings["SingleMessageIdentificator"]);
-            _multipleMessageStartIdentificator = int.Parse(ConfigurationManager.AppSettings["MultipleMessageStartIdentificator"]);
-            _multipleMessageEndIdentificator = int.Parse(ConfigurationManager.AppSettings["MultipleMessageEndIdentificator"]);
-            _multipleCommonMessageIdentificator = int.Parse(ConfigurationManager.AppSettings["MultipleCommonMessageIdentificator"]);
+            ServerQueueName = 
+                ConfigurationManager.OpenExeConfiguration(Assembly.GetExecutingAssembly().Location).AppSettings.Settings["MessageQueueName"].Value;
+            DefaultPath =
+                ConfigurationManager.OpenExeConfiguration(Assembly.GetExecutingAssembly().Location).AppSettings.Settings["FolderToCopy"].Value;
+            _singleMessageIdentificator = 
+                int.Parse(ConfigurationManager.OpenExeConfiguration(Assembly.GetExecutingAssembly().Location).AppSettings.Settings["SingleMessageIdentificator"].Value);
+            _multipleMessageStartIdentificator = 
+                int.Parse(ConfigurationManager.OpenExeConfiguration(Assembly.GetExecutingAssembly().Location).AppSettings.Settings["MultipleMessageStartIdentificator"].Value);
+            _multipleMessageEndIdentificator = 
+                int.Parse(ConfigurationManager.OpenExeConfiguration(Assembly.GetExecutingAssembly().Location).AppSettings.Settings["MultipleMessageEndIdentificator"].Value);
+            _multipleCommonMessageIdentificator =
+                int.Parse(ConfigurationManager.OpenExeConfiguration(Assembly.GetExecutingAssembly().Location).AppSettings.Settings["MultipleCommonMessageIdentificator"].Value);
         }
     }
 }

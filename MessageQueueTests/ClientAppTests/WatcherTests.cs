@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading;
+﻿using System.IO;
 using Autofac;
 using ClientApp.Configure;
 using ClientApp.Configure.Interfaces;
@@ -30,12 +26,6 @@ namespace MessageQueueTests.ClientAppTests
            _watcher.Start();
 
             Assert.IsTrue(((Watcher)_watcher).IsRunning);
-        }
-
-        // Define the event handlers.
-        private void OnChanged(object source, FileSystemEventArgs e)
-        {
-            // ? :o 
         }
 
         [TearDown]

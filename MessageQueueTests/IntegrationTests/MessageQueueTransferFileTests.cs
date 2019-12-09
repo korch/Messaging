@@ -4,10 +4,12 @@ using System.Threading;
 using Autofac;
 using Autofac.Core;
 using ClientApp;
+using ClientApp.Configure;
 using ClientApp.Configure.Interfaces;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using MessageQueueTests;
+using Moq;
 using NUnit.Framework;
 using ServerApp.Msmq;
 
@@ -39,15 +41,7 @@ namespace Tests
 
             if (!Directory.Exists(_folderToCopy)) {
                 Directory.CreateDirectory(_folderToCopy);
-            }
-        
-            var container = CompositionRoot.Get();
-
-            _serverService = new MsmqService();
-            _serverService.Run();
-            
-            _clientService = container.Resolve<IService>();
-            _clientService.Run();
+            } 
         }
 
         [Test]
@@ -71,10 +65,22 @@ namespace Tests
             Assert.IsTrue(File.Exists($"{_folderToCopy}//{_pdfFIleName}"));
         }
 
+        [Test]
+        public void ProcessingManager_ProcessingTest()
+        {
+            var manager = new Mock<ProcessingManager>() { CallBase = true };
+
+            CreateBigFile();
+            var result = manager.Object.ProcessingFileSendingMessage($"{_folderToCheck}//{_pdfFIleName}");
+
+            Assert.IsTrue(result);
+        }
+
         #region support methods
         private void CreateBigFile()
         {
-            File.Copy("Sample-PDF-File.pdf", $"{_folderToCheck}//{_pdfFIleName}");
+            if (!File.Exists($"{_folderToCheck}//{_pdfFIleName}"))
+                File.Copy("Sample-PDF-File.pdf", $"{_folderToCheck}//{_pdfFIleName}");
         }
 
         //Why not do it like with big pdf file ? Just wanted to use something features to create a pdf file in C#.
@@ -124,7 +130,7 @@ namespace Tests
                 Directory.Delete(_folderToCheck);
 
             if (Directory.Exists(_folderToCopy))
-                Directory.Delete(_folderToCopy);
+                Directory.Delete(_folderToCopy, true);
         }
     }
 }

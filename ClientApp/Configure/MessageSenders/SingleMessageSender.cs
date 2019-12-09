@@ -42,12 +42,12 @@ namespace ClientApp.Configure.MessageSenders
             return true;
         }
 
-        public virtual void Send(MessageQueue queue, Message message)
+        private void Send(MessageQueue queue, Message message)
         {
             queue.Send(message);
         }
 
-        public virtual Message CreateMessage(string label)
+        private Message CreateMessage(string label)
         {
             return new Message {
                 Label = label,

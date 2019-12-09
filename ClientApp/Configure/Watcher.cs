@@ -18,8 +18,6 @@ namespace ClientApp.Configure
 
         public event FileSystemEventHandler OnCreated;
 
-        public string MonitoringFolder => _watcher.Path;
-        public string Filter => _watcher.Filter;
         public bool IsRunning => _watcher.EnableRaisingEvents;
         
         public Watcher()
