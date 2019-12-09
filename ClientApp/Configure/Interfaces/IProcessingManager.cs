@@ -7,6 +7,6 @@ namespace ClientApp.Configure.Interfaces
 {
     public interface IProcessingManager
     {
-        bool ProcessingFileSendingMessage(string fullFilePath, long fileSize);
+        bool ProcessingFileSendingMessage(string fullFilePath);
     }
 }

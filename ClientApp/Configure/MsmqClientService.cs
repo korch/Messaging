@@ -30,9 +30,7 @@ namespace ClientApp.Configure
         {
             while(!IsFileReady(e.FullPath)) { }
 
-            var fileLength = new FileInfo(e.FullPath).Length;
-
-            _manager.ProcessingFileSendingMessage(e.FullPath, fileLength);
+            _manager.ProcessingFileSendingMessage(e.FullPath);
 
             Console.WriteLine($"File: {e.FullPath} which was {e.ChangeType} was sent to Server.");
         }

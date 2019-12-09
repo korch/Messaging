@@ -10,6 +10,9 @@ namespace ClientApp.Configure.MessageSenders
     {
         private readonly string _queueName;
 
+        // for identifying that this is a single message
+        private const int AppSpecific = 100;
+
         public SingleMessageSender(string messageQueuePath)
         {
             _queueName = messageQueuePath;
@@ -50,7 +53,7 @@ namespace ClientApp.Configure.MessageSenders
                 Label = label,
                 Priority = MessagePriority.Normal,
                 Formatter = new BinaryMessageFormatter(),
-                AppSpecific = 100
+                AppSpecific = AppSpecific
             };
         }
     }

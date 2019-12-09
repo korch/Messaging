@@ -28,12 +28,12 @@ namespace ClientApp.Configure
             ReadAppSettings();
         }
 
-        public bool ProcessingFileSendingMessage(string fullFilePath, long fileSize)
+        public bool ProcessingFileSendingMessage(string fullFilePath)
         {
             if (string.IsNullOrEmpty(fullFilePath))
                 throw new InvalidOperationException("file is null or empty");
 
-       
+            var fileSize = new FileInfo(fullFilePath).Length;
             var type  = fileSize > _byteMaxSizeForChunk ? MessageType.Multiple : MessageType.Single;
             var messageSender = GetMessageSender(type);
 

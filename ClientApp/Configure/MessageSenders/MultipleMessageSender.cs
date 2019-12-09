@@ -11,6 +11,10 @@ namespace ClientApp.Configure.MessageSenders
         private readonly string _queueName;
         private readonly long _byteMaxSizeForChunk;
 
+        private const int FirstMessage = -1;
+        private const int CommonMessage = 250;
+        private const int LastMessage = -2;
+
         public MultipleMessageSender(string messageQueuePath, long chunkSize)
         {
             _queueName = messageQueuePath;
@@ -25,6 +29,7 @@ namespace ClientApp.Configure.MessageSenders
         {
             using (var serverQueue = new MessageQueue(_queueName, QueueAccessMode.Send)) {
                 var fileStream = new FileStream(path, FileMode.Open);
+                var fileName = Path.GetFileName(path);
                 try {
                     fileStream.Seek(0, SeekOrigin.Begin);
                     byte[] buf = new byte[fileStream.Length];
@@ -36,7 +41,7 @@ namespace ClientApp.Configure.MessageSenders
                     var bufferArray = new byte[chunkCount][];
 
                     SendMessage(serverQueue, new MemoryStream(Encoding.ASCII.GetBytes($"{Path.GetFileName(path)}")),
-                        "Initial", -1);
+                        fileName, FirstMessage);
 
                     for (var i = 0; i < chunkCount; i++) {
                         if (i == chunkCount - 1) {
@@ -50,12 +55,10 @@ namespace ClientApp.Configure.MessageSenders
                                 bufferArray[i][j] = buf[i * chunkCount + j];
                             }
                         }
-
-                        SendMessage(serverQueue, new MemoryStream(bufferArray[i]), i.ToString(), i);
+                        SendMessage(serverQueue, new MemoryStream(bufferArray[i]), fileName, CommonMessage);
                     }
-
                     SendMessage(serverQueue, new MemoryStream(Encoding.ASCII.GetBytes($"{chunkCount}")),
-                        $"{Path.GetFileName(path)}", -2);
+                        fileName, LastMessage);
                 } catch (Exception e) {
                     throw new InvalidOperationException(e.Message);
                 } finally {

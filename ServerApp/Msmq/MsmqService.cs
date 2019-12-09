@@ -1,35 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Experimental.System.Messaging;
+using ServerApp.Msmq.Configuration;
+using MessageType = ServerApp.Msmq.Configuration.MessageType;
 
 namespace ServerApp.Msmq
 {
     public class MsmqService : IServer
     {
-        Thread workThread;
-        ManualResetEvent stopWorkEvent;
+        private string ServerQueueName;
+        private string DefaultPath;
 
-        private const string ServerQueueName = @".\Private$\MsmqTRansferFileQueue";
-        private const string DefaultPath = "C:\\DefaultServerFolder\\";
+        private List<FileTransferPull> _filesToCopy;
 
-        private List<Message> _messages;
+        private int _singleMessageIdentificator;
+        private int _multipleMessageStartIdentificator;
+        private int _multipleCommonMessageIdentificator;
+        private int _multipleMessageEndIdentificator;
+
+        private object locker = new object();
 
         public void Run()
         {
+            ReadAppSettings();
             CreateQueue();
 
             if (!Directory.Exists(DefaultPath))
                 Directory.CreateDirectory(DefaultPath);
 
-            stopWorkEvent = new ManualResetEvent(false);
-            _messages = new List<Message>();
-
-            workThread = new Thread(Server);
-            workThread.Start();
+            _filesToCopy = new List<FileTransferPull>();
+         
+            Task.Run(Server);
         }
+
 
         private void CreateQueue()
         {
@@ -41,65 +51,134 @@ namespace ServerApp.Msmq
             }
         }
 
-        private void Server(object obj)
+        private async Task Server()
         {
-            using (var serverQueue = new MessageQueue(ServerQueueName))
-            {
+            using (var serverQueue = new MessageQueue(ServerQueueName)) {
                 serverQueue.Formatter = new BinaryMessageFormatter();
                 serverQueue.MessageReadPropertyFilter.Body = true;
                 serverQueue.MessageReadPropertyFilter.CorrelationId = true;
                 serverQueue.MessageReadPropertyFilter.AppSpecific = true;
 
                 while (true) {
-                    var asyncReceive = serverQueue.BeginPeek();
+                    var message = await Task.Factory.FromAsync(
+                        serverQueue.BeginReceive(),
+                        serverQueue.EndReceive);
 
-                    var res = WaitHandle.WaitAny(new WaitHandle[] { stopWorkEvent, asyncReceive.AsyncWaitHandle });
-                    if (res == 0)
-                        break;
-
-                    var message = serverQueue.EndPeek(asyncReceive);
-                    serverQueue.ReceiveById(message.Id);
-
-                    if (message.AppSpecific == 100) {
-                        using (FileStream output = new FileStream($"{DefaultPath}{message.Label}", FileMode.Create)) {
-                           Read(message.BodyStream, output);
-                            output.Close();             
-                        }
-                        message.Dispose();
-
-                        var text = string.Format($"Received file with name {message.Label}\n from the client");
-                        Console.WriteLine(text);
-                    } else {
-                        if (message.AppSpecific == -2) {
-                            var list = _messages.Where(m => m.AppSpecific != -1);
-
-                            using (FileStream output = new FileStream($"{DefaultPath}{message.Label}", FileMode.Create)) {
-                                foreach (var item in list)
-                                {
-                                   Read(item.BodyStream, output);
-                                   item.Dispose();
-                                }
-                                output.Close();
-                            }
-                            message.Dispose();
-
-                            var text = string.Format($"Received file with name {message.Label}\n from the client");
-                            Console.WriteLine(text);
-                        } else
-                            _messages.Add(message);    
-                    }
+                    //obtain messages
+                    await MessageProcess(message);
                 }
             }
         }
 
-        private void Read(Stream stream, FileStream output)
+        private async Task CopyFiles()
         {
-            int readBytes = 0;
-            byte[] buffer;
-            buffer = new byte[stream.Length];
-            while ((readBytes = stream.Read(buffer, 0, buffer.Length)) > 0) {
-                output.Write(buffer, 0, readBytes);
+                if (_filesToCopy.Any(f => f.State == FileTransferPullState.ReadyToTransfer)) {
+                    lock (locker) {
+                        var files = _filesToCopy.Where(f => f.State == FileTransferPullState.ReadyToTransfer);
+                        foreach (var file in files) {
+                            var processor = GetMessageProcessorHelper.GetMessageProcessor(file.Type);
+                            processor.Processing(file.Messages);
+                            file.IsCopied = true;
+
+                            Console.WriteLine($"New file with name {file.FileName} was copied to folder...");
+                        }
+                        _filesToCopy = _filesToCopy.Where(f => !f.IsCopied).ToList();
+                    }
+                }
+        }
+
+        private async Task MessageProcess(Message message)
+        {
+            if (message.AppSpecific == _singleMessageIdentificator)
+            {
+                var file = CreateFileTransferObject(true, message);
+
+                file.Messages.Add(message);
+                _filesToCopy.Add(file);
             }
+
+            if (message.AppSpecific == _multipleMessageStartIdentificator)
+            {
+                var file = CreateFileTransferObject(false, message);
+                _filesToCopy.Add(file);
+            }
+
+            if (message.AppSpecific == _multipleCommonMessageIdentificator)
+            {
+                var ftc = GetFileTransferObject(message);
+
+                if (ftc?.State == FileTransferPullState.ReadyToTransfer)
+                    ftc.State = FileTransferPullState.InProgress;
+
+                ftc?.Messages.Add(message);
+            }
+
+            if (message.AppSpecific == _multipleMessageEndIdentificator) {
+                var ftc = GetFileTransferObject(message);
+                var indexof = _filesToCopy.IndexOf(ftc);
+                if (ftc != null)
+                    ftc.State = FileTransferPullState.ReadyToTransfer;
+
+                _filesToCopy[indexof] = ftc;
+            }
+
+            await CopyFiles();
+        }
+
+        private FileTransferPull CreateFileTransferObject(bool isSingle, Message message)
+        {
+            var index = message.Id.IndexOf('\\');
+            var state = isSingle ? FileTransferPullState.ReadyToTransfer : FileTransferPullState.InProgress;
+            var type = isSingle ? MessageType.Single : MessageType.Multiple;
+
+            var fileToCopy = new FileTransferPull {
+                ClientQueueId = message.Id.Substring(0, index),
+                FileName = message.Label,
+                State = state,
+                Type = type,
+                IsCopied = false
+            };
+
+            return fileToCopy;
+        }
+
+        private FileTransferPull GetFileTransferObject(Message message)
+        {
+            var index = message.Id.IndexOf('\\');
+            var id = message.Id.Substring(0, index);
+            var ftc = _filesToCopy.FirstOrDefault(f => string.Equals(f.ClientQueueId, id));
+
+            return ftc;
+        }
+
+        //private void MessageProcess(Message message)
+        //{
+        //    if (message.AppSpecific == _singleMessageIdentificator) {
+        //        var processor = GetMessageProcessorHelper.GetMessageProcessor(MessageType.Single);
+        //        processor.Processing(new List<Message>() { message });
+
+        //        var text = string.Format($"Received file with name {message.Label}\n from the client");
+        //        Console.WriteLine(text);
+        //    }
+
+        //    if (message.AppSpecific == _multipleMessageEndIdentificator) {
+        //        var processor = GetMessageProcessorHelper.GetMessageProcessor(MessageType.Multiple);
+        //        processor.Processing(_messages);
+
+        //        var text = string.Format($"Received file with name {message.Label}\n from the client");
+        //        Console.WriteLine(text);
+        //    } else
+        //        _messages.Add(message);
+        //}
+
+        private void ReadAppSettings()
+        {
+            ServerQueueName = ConfigurationManager.AppSettings["MessageQueueName"];
+            DefaultPath = ConfigurationManager.AppSettings["FolderToCopy"];
+            _singleMessageIdentificator = int.Parse(ConfigurationManager.AppSettings["SingleMessageIdentificator"]);
+            _multipleMessageStartIdentificator = int.Parse(ConfigurationManager.AppSettings["MultipleMessageStartIdentificator"]);
+            _multipleMessageEndIdentificator = int.Parse(ConfigurationManager.AppSettings["MultipleMessageEndIdentificator"]);
+            _multipleCommonMessageIdentificator = int.Parse(ConfigurationManager.AppSettings["MultipleCommonMessageIdentificator"]);
         }
     }
 }
