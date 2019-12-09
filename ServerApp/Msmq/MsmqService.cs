@@ -64,14 +64,14 @@ namespace ServerApp.Msmq
                         serverQueue.EndReceive);
 
                     //obtain messages
-                    await MessageProcess(message);
+                    MessageProcess(message);
                 }
             }
         }
 
-        private async Task CopyFiles()
+        private void CopyFiles()
         {
-            await Task.Run(() => {
+             Task.Run(() => {
                 if (_filesToCopy.Any(f => f.State == FileTransferPullState.ReadyToTransfer)) {
                     lock (locker) {
                         var files = _filesToCopy.Where(f => f.State == FileTransferPullState.ReadyToTransfer);
@@ -80,7 +80,7 @@ namespace ServerApp.Msmq
                             processor.Processing(file.Messages);
                             file.IsCopied = true;
 
-                            Console.WriteLine($"New file with name {file.FileName} was copied to folder...");
+                            Console.WriteLine($"New file with name {file.FileName} from client queue with Id: {file.ClientQueueId} was copied to folder...");
                         }
                         _filesToCopy = _filesToCopy.Where(f => !f.IsCopied).ToList();
                     }
@@ -88,7 +88,7 @@ namespace ServerApp.Msmq
             });
         }
 
-        private async Task MessageProcess(Message message)
+        private void MessageProcess(Message message)
         {
             if (message.AppSpecific == _singleMessageIdentificator)
             {
@@ -121,7 +121,7 @@ namespace ServerApp.Msmq
                     ftc.State = FileTransferPullState.ReadyToTransfer;
             }
 
-            await CopyFiles();
+            CopyFiles();
         }
 
         private FileTransferPull CreateFileTransferObject(bool isSingle, Message message)
