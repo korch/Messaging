@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="ClientApp.Configure.MessageSenders.MultipleMessageSender" BaseTypeListCollapsed="true">
+    <Position X="16.5" Y="0.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAgAEAAAAAAAIAAAACAAAAAAEAAAAACAAAAAAAAAgQA=</HashCode>
+      <FileName>Configure\MessageSenders\MultipleMessageSender.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="ClientApp.Configure.MessageSenders.SingleMessageSender" BaseTypeListCollapsed="true">
+    <Position X="13.75" Y="0.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAIAAAAEAAAAAAEAAAAACAAAAAAQAAAAA=</HashCode>
+      <FileName>Configure\MessageSenders\SingleMessageSender.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.752" Collapsed="true" />
+  </Class>
+  <Class Name="ClientApp.Configure.MsmqClientService" BaseTypeListCollapsed="true">
+    <Position X="2.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAASAAAAAAAAAAAQAAAAAAgAAAAAAAAAAAAAY=</HashCode>
+      <FileName>Configure\MsmqClientService.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="ClientApp.Configure.ProcessingManager" BaseTypeListCollapsed="true">
+    <Position X="7" Y="3.5" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAQBAAAAAAAEAAQICAAAAAAAAAAAAAABAAAAAAAgAA=</HashCode>
+      <FileName>Configure\ProcessingManager.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="ClientApp.Configure.Watcher" BaseTypeListCollapsed="true">
+    <Position X="10.5" Y="0.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAIQAAAQDACAAAABAAAAACAAAQ=</HashCode>
+      <FileName>Configure\Watcher.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="ClientApp.Program">
+    <Position X="0.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAABAAAAAA=</HashCode>
+      <FileName>Program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="ClientApp.Configure.MessageSenders.IMessageSender">
+    <Position X="14.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Configure\Interfaces\IMessageSender.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="ClientApp.Configure.Interfaces.IProcessingManager">
+    <Position X="4.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Configure\Interfaces\IProcessingManager.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="ClientApp.Configure.Interfaces.IService">
+    <Position X="2.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI=</HashCode>
+      <FileName>Configure\Interfaces\IService.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="ClientApp.Configure.Interfaces.IWatcher" Collapsed="true">
+    <Position X="7.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Configure\Interfaces\IWatcher.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="ClientApp.Configure.MessageType">
+    <Position X="7.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAEAAAAACAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Configure\ProcessingManager.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

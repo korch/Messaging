@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="ServerApp.Msmq.Configuration.FileTransferPull">
+    <Position X="8" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAEAQAAAAAAAQAABQBAAAA=</HashCode>
+      <FileName>Msmq\Configuration\FileTransferPull.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ServerApp.Msmq.Configuration.GetMessageProcessorHelper">
+    <Position X="7.5" Y="5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Msmq\Configuration\GetMessageProcessorHelper.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ServerApp.Msmq.Configuration.MultipleMessageFileProcessor" Collapsed="true">
+    <Position X="9.75" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Msmq\Configuration\MultipleMessageFileProcessor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ServerApp.Msmq.Configuration.Processor" Collapsed="true">
+    <Position X="14" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAACAAAAAAAAAAAiAAAAAgAAAAAAAAAAAAA=</HashCode>
+      <FileName>Msmq\Configuration\Processor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ServerApp.Msmq.Configuration.SingleMessageFileProcessor" Collapsed="true">
+    <Position X="9.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Msmq\Configuration\SingleMessageFileProcessor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ServerApp.Msmq.MsmqService" BaseTypeListCollapsed="true">
+    <Position X="5.25" Y="0.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAIAAgAAAAIAIAgAAAAAEAAAQAAAAABgBAQwAAAAI=</HashCode>
+      <FileName>Msmq\MsmqService.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="ServerApp.Program">
+    <Position X="0.5" Y="1.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAABAAAAAA=</HashCode>
+      <FileName>Program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="ServerApp.Msmq.IServer" Collapsed="true">
+    <Position X="3" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI=</HashCode>
+      <FileName>Msmq\IServer.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="ServerApp.Msmq.Configuration.FileTransferPullState">
+    <Position X="1.5" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAABAAAAA=</HashCode>
+      <FileName>Msmq\Configuration\FileTransferPull.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="ServerApp.Msmq.Configuration.MessageType">
+    <Position X="3.25" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAEAAAAACAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Msmq\Configuration\GetMessageProcessorHelper.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
