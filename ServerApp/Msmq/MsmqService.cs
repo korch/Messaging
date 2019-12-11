@@ -14,6 +14,86 @@ using MessageType = ServerApp.Msmq.Configuration.MessageType;
 
 namespace ServerApp.Msmq
 {
+    public class FileMessage
+    {
+        private FileStatus = 
+
+        private List<FilePart> _parts;
+
+        public void AddPart(FilePart part)
+        {
+            _parts.Add(part);
+        }
+    }
+
+    public class FileMessageBuffer
+    {
+        private IDictionary<string, FileMessage> _filesBuffer;
+
+    
+
+        public void AddFilePart(string fileIdentifier, FilePart part)
+        {
+            if (_filesBuffer.TryGetValue(fileIdentifier, out FileMessage fileMessage))
+            {
+                fileMessage.AddPart(part);
+            }
+
+            _filesBuffer.Add(fileIdentifier, part);
+        }
+
+        public void RemoveFile(string fileIdentifier)
+        {
+
+        }
+    }
+
+
+    public  class MsmqServiceFactory
+    {
+        private IServerOptionsProvider _optionsProvider;
+
+        public MsmqServiceFactory(IServerOptionsProvider optionsProvider)
+        {
+            _optionsProvider = optionsProvider;
+
+        }
+
+        public IServer GetServer ()
+        {
+            return new MsmqService(_optionsProvider.GetOptions());
+        }
+    }
+
+
+    public class MsmqServiceOptions
+    {
+        public string MessageQueueName { get; set; }
+
+        // Other settings
+    }
+
+    public interface IFileSystemManager
+    {
+        void CreateDirectoryIfNotExists();
+    }
+
+    public class FileSystemManager : IFileSystemManager
+    {
+        public FileSystemManager(IDirectory directory)
+        {
+
+        }
+
+        public void CreateDirectoryIfNotExists()
+        {
+            if (!_directory.Exists())
+            {
+                _directory.Create();
+            }
+        }
+    }
+
     public class MsmqService : IServer
     {
         private string ServerQueueName;
@@ -28,7 +108,12 @@ namespace ServerApp.Msmq
 
         private readonly object locker = new object();
 
-        public void Run()
+        public MsmqService(MsmqServiceOptions options)
+        {
+
+        }
+
+        public async void Run()
         {
             ReadAppSettings();
             CreateQueue();
@@ -40,7 +125,7 @@ namespace ServerApp.Msmq
             _filesToCopy = new List<FileTransferPull>();
             
          
-            Task.Run(Server);
+            await Task.Run(Server);
         }
 
         private void CreateQueue()
@@ -50,6 +135,14 @@ namespace ServerApp.Msmq
                 Console.WriteLine($"MSMQ queue was created with name:{ServerQueueName}");
             } else {
                 Console.WriteLine($"You uses MSMQ with name:{ServerQueueName}");      
+            }
+        }
+
+        public class MsmqHandler : IHandler
+        {
+            public void Handle(MsmqMessage message)
+            {
+
             }
         }
 
@@ -65,6 +158,12 @@ namespace ServerApp.Msmq
                     var message = await Task.Factory.FromAsync(
                         serverQueue.BeginReceive(),
                         serverQueue.EndReceive);
+
+                    Task.Run()
+
+                    var filePart = messageToFilePartMapper.MatToFilePart(message);
+
+                    _filesBuffer.AddPart(filePart);
 
                     //obtain messages
                     MessageProcess(message);

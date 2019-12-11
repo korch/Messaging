@@ -33,6 +33,7 @@ namespace ClientApp.Configure
             if (string.IsNullOrEmpty(fullFilePath))
                 throw new InvalidOperationException("file is null or empty");
 
+
             var fileSize = new FileInfo(fullFilePath).Length;
             var type  = fileSize > _byteMaxSizeForChunk ? MessageType.Multiple : MessageType.Single;
             var messageSender = GetMessageSender(type);
