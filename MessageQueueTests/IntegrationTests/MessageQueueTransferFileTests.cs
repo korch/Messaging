@@ -25,9 +25,6 @@ namespace Tests
         private string _folderToCopy;
         private string _pdfFIleName;
 
-        private MsmqService _serverService;
-        private IService _clientService;
-
         [SetUp]
         public void Setup()
         {

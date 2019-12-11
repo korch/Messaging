@@ -47,6 +47,7 @@ namespace ClientApp.Configure
             }
         }
 
+        private bool disposed = false;
         public void Dispose()
         {
             Dispose(true);
@@ -55,8 +56,11 @@ namespace ClientApp.Configure
 
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing) {
-                _watcher.Dispose();
+            if (!disposed) {
+                if (disposing)
+                    _watcher.Dispose();
+
+                disposed = true;
             }
         }
 

@@ -17,7 +17,7 @@ namespace MessageQueueTests.ClientAppTests
         {
             var label = "label";
             var sender = new MultipleMessageSender("blabla", 100);
-            var message = sender.CreateMessage(new MemoryStream(), label, 1);
+            var message = sender.CreateMessage(new byte[1], label, 1);
 
             Assert.IsNotNull(message.BodyStream);
             Assert.AreEqual(label, message.Label);
@@ -31,7 +31,7 @@ namespace MessageQueueTests.ClientAppTests
         {
             var messageSenderMock = new Mock<MultipleMessageSender>("bla", 1);
 
-            messageSenderMock.Setup(m => m.SendMessage(It.IsAny<MessageQueue>(), It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<int>())).Verifiable();
+            messageSenderMock.Setup(m => m.SendMessage(It.IsAny<MessageQueue>(), It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<int>())).Verifiable();
             
             var result = messageSenderMock.Object.SendFile("file");
 

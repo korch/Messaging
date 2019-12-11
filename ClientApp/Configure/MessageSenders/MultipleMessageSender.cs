@@ -40,7 +40,7 @@ namespace ClientApp.Configure.MessageSenders
                     var chunkCount = (int) Math.Ceiling(size / (decimal) _byteMaxSizeForChunk);
                     var bufferArray = new byte[chunkCount][];
 
-                    SendMessage(serverQueue, new MemoryStream(Encoding.ASCII.GetBytes($"{Path.GetFileName(path)}")),
+                    SendMessage(serverQueue, Encoding.ASCII.GetBytes($"{Path.GetFileName(path)}"),
                         fileName, FirstMessage);
 
                     for (var i = 0; i < chunkCount; i++) {
@@ -55,9 +55,9 @@ namespace ClientApp.Configure.MessageSenders
                                 bufferArray[i][j] = buf[i * chunkCount + j];
                             }
                         }
-                        SendMessage(serverQueue, new MemoryStream(bufferArray[i]), fileName, CommonMessage);
+                        SendMessage(serverQueue, bufferArray[i], fileName, CommonMessage);
                     }
-                    SendMessage(serverQueue, new MemoryStream(Encoding.ASCII.GetBytes($"{chunkCount}")),
+                    SendMessage(serverQueue, Encoding.ASCII.GetBytes($"{chunkCount}"),
                         fileName, LastMessage);
                 } catch (Exception e) {
                     throw new InvalidOperationException(e.Message);
@@ -76,20 +76,18 @@ namespace ClientApp.Configure.MessageSenders
         /// <param name="stream"></param>
         /// <param name="label"></param>
         /// <param name="appSpecific"></param>
-        public virtual void SendMessage(MessageQueue queue, Stream stream, string label, int appSpecific)
+        internal void SendMessage(MessageQueue queue, byte[] buf, string label, int appSpecific)
         {
-            var message = CreateMessage(stream, label, appSpecific);
+            var message = CreateMessage(buf, label, appSpecific);
 
             queue.Send(message);
-
             message.Dispose();
         }
 
-        public virtual Message CreateMessage(Stream stream, string label, int appSpecific)
+        internal Message CreateMessage(byte[] buf, string label, int appSpecific)
         {
-            return new Message
-            {
-                BodyStream = stream,
+            return new Message {
+                BodyStream = new MemoryStream(buf),
                 Label = label,
                 Priority = MessagePriority.Normal,
                 Formatter = new BinaryMessageFormatter(),

@@ -62,12 +62,15 @@ namespace ClientApp.Configure
             GC.SuppressFinalize(this);
         }
 
+        private bool disposed = false;
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                _watcher.Dispose();
-            }
+            if (!disposed) {
+                if (disposing) {
+                    _watcher.Dispose();
+                }
+                disposed = true;
+            } 
         }
 
         ~Watcher()

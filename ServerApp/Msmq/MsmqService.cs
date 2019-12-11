@@ -36,7 +36,9 @@ namespace ServerApp.Msmq
             if (!Directory.Exists(DefaultPath))
                 Directory.CreateDirectory(DefaultPath);
 
+          
             _filesToCopy = new List<FileTransferPull>();
+            
          
             Task.Run(Server);
         }
@@ -73,36 +75,37 @@ namespace ServerApp.Msmq
         private void CopyFiles()
         {
              Task.Run(() => {
-                if (_filesToCopy.Any(f => f.State == FileTransferPullState.ReadyToTransfer)) {
-                    lock (locker) {
-                        var files = _filesToCopy.Where(f => f.State == FileTransferPullState.ReadyToTransfer);
-                        foreach (var file in files) {
-                            var processor = GetMessageProcessorHelper.GetMessageProcessor(file.Type);
-                            processor.Processing(file.Messages);
-                            file.IsCopied = true;
+                 lock (locker) {
+                     if (_filesToCopy.Any(f => f.State == FileTransferPullState.ReadyToTransfer)) {
+                         var files = _filesToCopy.Where(f => f.State == FileTransferPullState.ReadyToTransfer);
+                         foreach (var file in files) {
+                             var processor = GetMessageProcessorHelper.GetMessageProcessor(file.Type);
+                             processor.Processing(file.Messages);
+                             file.IsCopied = true;
 
-                            Console.WriteLine($"New file with name {file.FileName} from client queue with Id: {file.ClientQueueId} was copied to folder...");
-                        }
-                        _filesToCopy = _filesToCopy.Where(f => !f.IsCopied).ToList();
-                    }
-                }
+                             Console.WriteLine(
+                                 $"New file with name {file.FileName} from client queue with Id: {file.ClientQueueId} was copied to folder...");
+                         }
+                         _filesToCopy = _filesToCopy.Where(f => !f.IsCopied).ToList();
+                     }
+                 }
             });
         }
 
         private void MessageProcess(Message message)
         {
-            if (message.AppSpecific == _singleMessageIdentificator)
-            {
-                var file = CreateFileTransferObject(true, message);
+            lock (locker) {
+                if (message.AppSpecific == _singleMessageIdentificator) {
+                    var file = CreateFileTransferObject(true, message);
 
-                file.Messages.Add(message);
-                _filesToCopy.Add(file);
-            }
+                    file.Messages.Add(message);
+                    _filesToCopy.Add(file);
+                }
 
-            if (message.AppSpecific == _multipleMessageStartIdentificator)
-            {
-                var file = CreateFileTransferObject(false, message);
-                _filesToCopy.Add(file);
+                if (message.AppSpecific == _multipleMessageStartIdentificator) {
+                    var file = CreateFileTransferObject(false, message);
+                    _filesToCopy.Add(file);
+                }
             }
 
             if (message.AppSpecific == _multipleCommonMessageIdentificator)
