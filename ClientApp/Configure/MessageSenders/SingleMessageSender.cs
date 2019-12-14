@@ -3,22 +3,23 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using ClientApp.Configure.Interfaces;
 using Experimental.System.Messaging;
-
-[assembly: InternalsVisibleTo("MessageQueueTests")]
 
 namespace ClientApp.Configure.MessageSenders
 {
     public class SingleMessageSender : IMessageSender
     {
-        private readonly string _queueName;
+        private readonly IMessageCreator _messageCreator;
+        private readonly IClientOptions _options;
 
         // for identifying that this is a single message
         private const int AppSpecific = 100;
 
-        public SingleMessageSender(string messageQueuePath)
+        public SingleMessageSender(IMessageCreator messageCreator, IClientOptions options)
         {
-            _queueName = messageQueuePath;
+            _messageCreator = messageCreator;
+            _options = options;
         }
 
         /// <summary>
@@ -27,11 +28,12 @@ namespace ClientApp.Configure.MessageSenders
         /// <param name="fullPath"></param>
         public bool SendFile(string path)
         {
-            using (var serverQueue = new MessageQueue(_queueName, QueueAccessMode.Send)) {
+            using (var serverQueue = new MessageQueue(_options.MessageQueueServerName, QueueAccessMode.Send)) {
                 var fileStream = new FileStream(path, FileMode.Open);
-                try {
-                    var message = CreateMessage(Path.GetFileName(path));
-
+                try
+                {
+                    var message = _messageCreator.CreateMessage(Path.GetFileName(path), AppSpecific, new byte[0]);
+  
                     message.BodyStream = fileStream;
                     Send(serverQueue, message);
 
@@ -50,7 +52,7 @@ namespace ClientApp.Configure.MessageSenders
             queue.Send(message);
         }
 
-        internal Message CreateMessage(string label)
+        private Message CreateMessage(string label)
         {
             return new Message {
                 Label = label,

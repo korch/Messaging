@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Configuration;
 using System.IO;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using ClientApp.Configure.Interfaces;
-using ClientApp.Configure.MessageSenders;
 
-[assembly: InternalsVisibleTo("MessageQueueTests")]
 
 namespace ClientApp.Configure
 {
@@ -18,14 +13,15 @@ namespace ClientApp.Configure
 
     public class ProcessingManager : IProcessingManager
     {
-        private const string AppSettingsMessageQueueServerName = "MessageQueueServerName";
-        private const string AppSettingsFileSize = "SizeOfChunks";
-        private long _byteMaxSizeForChunk;
-        private string _messageQueueServer;
+        private readonly IClientOptions _options;
+        private readonly IMessageSenderFactory _messageSenderFactory;
+        private readonly IMessageCreator _messageCreator;
 
-        public ProcessingManager()
+        public ProcessingManager(IClientOptions options, IMessageSenderFactory messageSenderFactory, IMessageCreator messageCreator)
         {
-            ReadAppSettings();
+            _options = options;
+            _messageSenderFactory = messageSenderFactory;
+            _messageCreator = messageCreator;
         }
 
         public bool ProcessingFileSendingMessage(string fullFilePath)
@@ -35,37 +31,12 @@ namespace ClientApp.Configure
 
 
             var fileSize = new FileInfo(fullFilePath).Length;
-            var type  = fileSize > _byteMaxSizeForChunk ? MessageType.Multiple : MessageType.Single;
-            var messageSender = GetMessageSender(type);
+            var type  = fileSize > _options.SizeOfChunks ? MessageType.Multiple : MessageType.Single;
+            var messageSender = _messageSenderFactory.GetMessageSender(type, _messageCreator, _options);
 
             messageSender.SendFile(fullFilePath);
 
             return true;
-        }
-
-        internal IMessageSender GetMessageSender(MessageType type)
-        {
-            switch (type) {
-                case MessageType.Single:
-                    return new SingleMessageSender(_messageQueueServer);
-                case MessageType.Multiple:
-                    return new MultipleMessageSender(_messageQueueServer, _byteMaxSizeForChunk);
-                default:
-                    return new SingleMessageSender(_messageQueueServer);
-            }
-        }
-
-        private void ReadAppSettings()
-        {
-            _messageQueueServer = ConfigurationManager.
-                OpenExeConfiguration(Assembly.GetExecutingAssembly().Location)
-                .AppSettings
-                .Settings[AppSettingsMessageQueueServerName].Value;
-
-            _byteMaxSizeForChunk = long.Parse(ConfigurationManager
-                .OpenExeConfiguration(Assembly.GetExecutingAssembly().Location)
-                .AppSettings
-                .Settings[AppSettingsFileSize].Value);
         }
     }
 }

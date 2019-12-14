@@ -14,6 +14,10 @@ namespace ClientApp
             builder.RegisterType<MsmqClientService>().As<IService>();
             builder.RegisterType<Watcher>().As<IWatcher>();
             builder.RegisterType<ProcessingManager>().As<IProcessingManager>();
+            builder.RegisterType<MsmqClientOptions>().As<IClientOptions>();
+            builder.RegisterType<ClientOptionsProvider>().As<IClientOptionsProvider>();
+            builder.RegisterType<MessageCreator>().As<IMessageCreator>();
+            builder.RegisterType<MessageSenderFactory>().As<IMessageSenderFactory>();
 
             return builder.Build();
         }

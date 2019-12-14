@@ -2,23 +2,24 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using ClientApp.Configure.Interfaces;
 using Experimental.System.Messaging;
 
 namespace ClientApp.Configure.MessageSenders
 {
     public class MultipleMessageSender : IMessageSender
     {
-        private readonly string _queueName;
-        private readonly long _byteMaxSizeForChunk;
+        private readonly IMessageCreator _messageCreator;
+        private readonly IClientOptions _options;
 
         private const int FirstMessage = -1;
         private const int CommonMessage = 250;
         private const int LastMessage = -2;
 
-        public MultipleMessageSender(string messageQueuePath, long chunkSize)
+        public MultipleMessageSender(IMessageCreator messageCreator, IClientOptions options)
         {
-            _queueName = messageQueuePath;
-            _byteMaxSizeForChunk = chunkSize;
+            _messageCreator = messageCreator;
+            _options = options;
         }
 
         /// <summary>
@@ -27,7 +28,7 @@ namespace ClientApp.Configure.MessageSenders
         /// <param name="path"></param>
         public bool SendFile(string path)
         {
-            using (var serverQueue = new MessageQueue(_queueName, QueueAccessMode.Send)) {
+            using (var serverQueue = new MessageQueue(_options.MessageQueueServerName, QueueAccessMode.Send)) {
                 var fileStream = new FileStream(path, FileMode.Open);
                 var fileName = Path.GetFileName(path);
                 try {
@@ -37,7 +38,7 @@ namespace ClientApp.Configure.MessageSenders
 
                     var size = fileStream.Length;
                     fileStream.Close();
-                    var chunkCount = (int) Math.Ceiling(size / (decimal) _byteMaxSizeForChunk);
+                    var chunkCount = (int) Math.Ceiling(size / (decimal) _options.SizeOfChunks);
                     var bufferArray = new byte[chunkCount][];
 
                     SendMessage(serverQueue, Encoding.ASCII.GetBytes($"{Path.GetFileName(path)}"),
@@ -45,13 +46,13 @@ namespace ClientApp.Configure.MessageSenders
 
                     for (var i = 0; i < chunkCount; i++) {
                         if (i == chunkCount - 1) {
-                            bufferArray[i] = new byte[Math.Min(_byteMaxSizeForChunk, size - i * _byteMaxSizeForChunk)];
+                            bufferArray[i] = new byte[Math.Min(_options.SizeOfChunks, size - i * _options.SizeOfChunks)];
                             for (var j = 0; j < bufferArray[i].Length && i * chunkCount + j < size; j++) {
                                 bufferArray[i][j] = buf[i * chunkCount + j];
                             }
                         } else {
-                            bufferArray[i] = new byte[_byteMaxSizeForChunk];
-                            for (var j = 0; j < _byteMaxSizeForChunk && i * chunkCount + j < size; j++) {
+                            bufferArray[i] = new byte[_options.SizeOfChunks];
+                            for (var j = 0; j < _options.SizeOfChunks && i * chunkCount + j < size; j++) {
                                 bufferArray[i][j] = buf[i * chunkCount + j];
                             }
                         }
@@ -68,31 +69,18 @@ namespace ClientApp.Configure.MessageSenders
             return true;
         }
 
-
         /// <summary>
         /// Send message to server
         /// </summary>
         /// <param name="queue"></param>
-        /// <param name="stream"></param>
         /// <param name="label"></param>
         /// <param name="appSpecific"></param>
-        internal void SendMessage(MessageQueue queue, byte[] buf, string label, int appSpecific)
+        private void SendMessage(MessageQueue queue, byte[] buf, string label, int appSpecific)
         {
-            var message = CreateMessage(buf, label, appSpecific);
-
+            var message = _messageCreator.CreateMessage(label, appSpecific, buf);
+      
             queue.Send(message);
             message.Dispose();
-        }
-
-        internal Message CreateMessage(byte[] buf, string label, int appSpecific)
-        {
-            return new Message {
-                BodyStream = new MemoryStream(buf),
-                Label = label,
-                Priority = MessagePriority.Normal,
-                Formatter = new BinaryMessageFormatter(),
-                AppSpecific = appSpecific
-            };
         }
     }
 }

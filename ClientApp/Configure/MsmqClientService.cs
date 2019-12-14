@@ -2,6 +2,7 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using ClientApp.Configure.Interfaces;
 
 [assembly: InternalsVisibleTo("MessageQueueTests")]
@@ -28,11 +29,14 @@ namespace ClientApp.Configure
         // Define the event handlers.
         private void OnChanged(object source, FileSystemEventArgs e)
         {
-            while(!IsFileReady(e.FullPath)) { }
+            Task.Run(() => {
+                while (!IsFileReady(e.FullPath)) {
+                }
 
-            _manager.ProcessingFileSendingMessage(e.FullPath);
+                _manager.ProcessingFileSendingMessage(e.FullPath);
 
-            Console.WriteLine($"File: {e.FullPath} which was {e.ChangeType} was sent to Server.");
+                Console.WriteLine($"File: {e.FullPath} which was {e.ChangeType} was sent to Server.");
+            });
         }
 
         private bool IsFileReady(string filename)
@@ -42,7 +46,7 @@ namespace ClientApp.Configure
             try {
                 using (FileStream inputStream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None))
                     return inputStream.Length > 0;
-            } catch (Exception) {
+            } catch (IOException) {
                 return false;
             }
         }

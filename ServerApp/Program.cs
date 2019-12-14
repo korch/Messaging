@@ -41,6 +41,7 @@ namespace ServerApp
 
             Console.WriteLine("Press Any Key to cancel work");
             Console.ReadKey();
+            cancelTokenSource.Cancel();
         }
     }
 }

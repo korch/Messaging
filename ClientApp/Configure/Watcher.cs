@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Configuration;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using ClientApp.Configure.Interfaces;
 
@@ -11,21 +12,18 @@ namespace ClientApp.Configure
 {
     public class Watcher : IWatcher
     {
-        private const string AppSettingsFileFilter = "WatcherFileType";
-        private const string AppSettingsMonitoringFolder = "MonitoringFolder";
-
         private readonly FileSystemWatcher _watcher;
+        private IClientOptions _options;
 
         public event FileSystemEventHandler OnCreated;
 
         public bool IsRunning => _watcher.EnableRaisingEvents;
         
-        public Watcher()
+        public Watcher(IClientOptions options)
         {
+            _options = options;
             _watcher = new FileSystemWatcher();
-        
 
-            ReadAppSettings();
             SetupDefaultNotifiedFilters();
         }
 
@@ -33,6 +31,8 @@ namespace ClientApp.Configure
         public void Start()
         {
             _watcher.Created += OnCreated;
+            _watcher.Filter = _options.WatcherFileType;
+            _watcher.Path = _options.MonitoringFolder;
             _watcher.EnableRaisingEvents = true;
         }
 
@@ -43,18 +43,6 @@ namespace ClientApp.Configure
                                 | NotifyFilters.FileName
                                 | NotifyFilters.DirectoryName;
         }
-
-        private void ReadAppSettings()
-        {
-            _watcher.Filter = ConfigurationManager.OpenExeConfiguration(Assembly.GetExecutingAssembly().Location).AppSettings.Settings[AppSettingsFileFilter].Value;
-
-            var folder = ConfigurationManager.OpenExeConfiguration(Assembly.GetExecutingAssembly().Location).AppSettings.Settings[AppSettingsMonitoringFolder].Value;
-            if (!Directory.Exists(folder))
-                Directory.CreateDirectory(folder);
-
-            _watcher.Path = folder;
-        }
-
 
         public void Dispose()
         {
