@@ -4,17 +4,16 @@ using System.Configuration;
 using System.IO;
 using System.Text;
 using Experimental.System.Messaging;
+using ServerApp.Msmq.Configuration.Interfaces;
 
 namespace ServerApp.Msmq.Configuration
 {
     public abstract class Processor
     {
-        private const string AppSettingsFolderToCopy = "FolderToCopy";
-        protected readonly string _path;
-
-        protected Processor()
+        protected IServerOptions Options;
+        protected Processor(IServerOptions options)
         {
-            _path = ConfigurationManager.AppSettings[AppSettingsFolderToCopy];
+            Options = options;
         }
 
         protected void Read(Stream stream, FileStream output)
@@ -28,6 +27,6 @@ namespace ServerApp.Msmq.Configuration
             }
         }
 
-        public abstract void Processing(List<Message> messages);
+        public abstract void Processing(List<FilePart> messages);
     }
 }

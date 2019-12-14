@@ -4,19 +4,22 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Experimental.System.Messaging;
+using ServerApp.Msmq.Configuration.Interfaces;
 
 namespace ServerApp.Msmq.Configuration
 {
     public class SingleMessageFileProcessor : Processor
     {
-        public override void Processing(List<Message> messages)
+        public SingleMessageFileProcessor(IServerOptions options) : base(options) { }
+
+        public override void Processing(List<FilePart> messages)
         {
             var message = messages.First();
-            using (FileStream output = new FileStream($"{_path}{message.Label}", FileMode.Create)) {
-                Read(message.BodyStream, output);
+            using (FileStream output = new FileStream($"{Options.FolderToCopy}{message.Part.Label}", FileMode.Create)) {
+                Read(message.Part.BodyStream, output);
                 output.Close();
             }
-            message.Dispose();
+            message.Part.Dispose();
         }
     }
 }
